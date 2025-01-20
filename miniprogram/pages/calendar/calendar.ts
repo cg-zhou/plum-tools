@@ -1,29 +1,29 @@
 import { holidayData } from '../../utils/holidays'
 
-interface Festival {
-  name: string
-  type: string
+interface Holiday {
+  name: string;
+  type: 'holiday' | 'workday' | 'festival';
 }
 
 interface DayItem {
-  day: number
-  date: string
-  current: boolean
-  today?: boolean
-  selected?: boolean
-  festivals?: Festival[]
+  date: string;      // YYYY-MM-DD
+  day: number;       // 日期数字
+  current: boolean;  // 是否当前月份
+  today: boolean;    // 是否今天
+  selected: boolean; // 是否选中
+  festivals: Holiday[];
 }
 
 Component({
   data: {
-    year: 2024,
-    month: 1,
+    year: new Date().getFullYear(),
+    month: new Date().getMonth() + 1,
     days: [] as DayItem[],
-    weekdays: ['日', '一', '二', '三', '四', '五', '六'],
     selectedDate: '',
-    selectedFestivals: [] as Festival[],
-    years: [] as number[],
-    months: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'],
+    selectedFestivals: [] as Holiday[],
+    weekdays: ['日', '一', '二', '三', '四', '五', '六'],
+    years: Array.from({ length: 10 }, (_, i) => new Date().getFullYear() + i),
+    months: Array.from({ length: 12 }, (_, i) => i + 1),
     yearIndex: 0
   },
 
@@ -58,156 +58,158 @@ Component({
       this.calculateDays()
     },
 
-    // 格式化数字为两位数
-    formatNumber(n: number): string {
-      return n.toString().padStart(2, '0')
+    formatDate(date: Date): string {
+      const year = date.getFullYear();
+      const month = (date.getMonth() + 1).toString().padStart(2, '0');
+      const day = date.getDate().toString().padStart(2, '0');
+      return `${year}-${month}-${day}`;
     },
 
     calculateDays() {
-      const { year, month, selectedDate } = this.data
-      const days: DayItem[] = []
+      const { year, month } = this.data;
+      const days: DayItem[] = [];
       
-      // 获取当月第一天是星期几
-      const firstDay = new Date(year, month - 1, 1).getDay()
-      // 获取当月天数
-      const monthDays = new Date(year, month, 0).getDate()
-      // 获取上月天数
-      const prevMonthDays = new Date(year, month - 1, 0).getDate()
+      // 获取当前月的第一天
+      const firstDay = new Date(year, month - 1, 1);
+      // 获取当前月的最后一天
+      const lastDay = new Date(year, month, 0);
+      // 获取上个月的最后一天
+      const prevLastDay = new Date(year, month - 1, 0);
       
-      // 添加上月末尾的日期
-      for (let i = 0; i < firstDay; i++) {
-        const prevYear = month === 1 ? year - 1 : year
-        const prevMonth = month === 1 ? 12 : month - 1
-        const day = prevMonthDays - firstDay + i + 1
-        const date = `${prevYear}-${this.formatNumber(prevMonth)}-${this.formatNumber(day)}`
-        
+      // 获取当前日期
+      const today = new Date();
+      const todayStr = this.formatDate(today);
+      
+      // 填充上个月的日期
+      for (let i = firstDay.getDay(); i > 0; i--) {
+        const day = prevLastDay.getDate() - i + 1;
+        const date = new Date(year, month - 2, day);
+        const dateStr = this.formatDate(date);
         days.push({
+          date: dateStr,
           day,
-          date,
           current: false,
-          selected: date === selectedDate,
-          festivals: holidayData[prevYear]?.[this.formatNumber(prevMonth)]?.[this.formatNumber(day)]
-        })
+          today: dateStr === todayStr,
+          selected: dateStr === this.data.selectedDate,
+          festivals: holidayData[dateStr] || []
+        });
       }
       
-      // 添加当月日期
-      const today = new Date()
-      const isCurrentMonth = today.getFullYear() === year && today.getMonth() === month - 1
-      for (let i = 1; i <= monthDays; i++) {
-        const date = `${year}-${this.formatNumber(month)}-${this.formatNumber(i)}`
+      // 填充当前月的日期
+      for (let day = 1; day <= lastDay.getDate(); day++) {
+        const date = new Date(year, month - 1, day);
+        const dateStr = this.formatDate(date);
         days.push({
-          day: i,
-          date,
+          date: dateStr,
+          day,
           current: true,
-          today: isCurrentMonth && today.getDate() === i,
-          selected: date === selectedDate,
-          festivals: holidayData[year]?.[this.formatNumber(month)]?.[this.formatNumber(i)]
-        })
+          today: dateStr === todayStr,
+          selected: dateStr === this.data.selectedDate,
+          festivals: holidayData[dateStr] || []
+        });
       }
       
-      // 计算需要补充的下月天数
-      const totalDays = days.length
-      const remainingDays = 7 - (totalDays % 7)
-      if (remainingDays < 7) {  // 只有不足一行时才补充
-        const nextYear = month === 12 ? year + 1 : year
-        const nextMonth = month === 12 ? 1 : month + 1
-        for (let i = 1; i <= remainingDays; i++) {
-          const date = `${nextYear}-${this.formatNumber(nextMonth)}-${this.formatNumber(i)}`
-          days.push({
-            day: i,
-            date,
-            current: false,
-            selected: date === selectedDate,
-            festivals: holidayData[nextYear]?.[this.formatNumber(nextMonth)]?.[this.formatNumber(i)]
-          })
-        }
+      // 填充下个月的日期
+      const remainingDays = 42 - days.length; // 保持6行
+      for (let day = 1; day <= remainingDays; day++) {
+        const date = new Date(year, month, day);
+        const dateStr = this.formatDate(date);
+        days.push({
+          date: dateStr,
+          day,
+          current: false,
+          today: dateStr === todayStr,
+          selected: dateStr === this.data.selectedDate,
+          festivals: holidayData[dateStr] || []
+        });
       }
       
-      this.setData({ days })
+      this.setData({ days });
     },
 
     onYearChange(e: any) {
-      const yearIndex = e.detail.value
-      const year = this.data.years[yearIndex]
-      this.setData({ 
+      const year = this.data.years[e.detail.value];
+      this.setData({
         year,
-        yearIndex
+        yearIndex: e.detail.value
       }, () => {
-        this.calculateDays()
-      })
+        this.calculateDays();
+      });
     },
 
     onMonthChange(e: any) {
-      const month = parseInt(this.data.months[e.detail.value])
-      this.setData({ month }, () => {
-        this.calculateDays()
-      })
+      const month = this.data.months[e.detail.value];
+      this.setData({
+        month
+      }, () => {
+        this.calculateDays();
+      });
     },
 
     prevMonth() {
-      let { year, month } = this.data
+      const { year, month } = this.data;
       if (month === 1) {
-        year--
-        month = 12
+        this.setData({
+          year: year - 1,
+          month: 12
+        }, () => {
+          this.calculateDays();
+        });
       } else {
-        month--
+        this.setData({
+          month: month - 1
+        }, () => {
+          this.calculateDays();
+        });
       }
-      this.setData({ 
-        year, 
-        month,
-        yearIndex: this.data.years.indexOf(year)
-      }, () => {
-        this.calculateDays()
-      })
     },
 
     nextMonth() {
-      let { year, month } = this.data
+      const { year, month } = this.data;
       if (month === 12) {
-        year++
-        month = 1
+        this.setData({
+          year: year + 1,
+          month: 1
+        }, () => {
+          this.calculateDays();
+        });
       } else {
-        month++
+        this.setData({
+          month: month + 1
+        }, () => {
+          this.calculateDays();
+        });
       }
-      this.setData({ 
-        year, 
-        month,
-        yearIndex: this.data.years.indexOf(year)
-      }, () => {
-        this.calculateDays()
-      })
     },
 
     selectDate(e: any) {
-      const date = e.currentTarget.dataset.date
-      const [year, month, day] = date.split('-')
-      const festivals = holidayData[year]?.[month]?.[day] || []
+      const { date } = e.currentTarget.dataset;
+      const days = this.data.days.map(day => ({
+        ...day,
+        selected: day.date === date
+      }));
       
-      this.setData({ 
+      this.setData({
+        days,
         selectedDate: date,
-        selectedFestivals: festivals
-      }, () => {
-        this.calculateDays()
-      })
+        selectedFestivals: holidayData[date] || []
+      });
     },
 
     goToday() {
-      const now = new Date()
-      const year = now.getFullYear()
-      const month = now.getMonth() + 1
-      const day = now.getDate()
-      const date = `${year}-${this.formatNumber(month)}-${this.formatNumber(day)}`
-      const festivals = holidayData[year]?.[this.formatNumber(month)]?.[this.formatNumber(day)] || []
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = now.getMonth() + 1;
+      const dateStr = this.formatDate(now);
       
       this.setData({
         year,
         month,
-        selectedDate: date,
-        selectedFestivals: festivals,
-        yearIndex: this.data.years.indexOf(year)
+        selectedDate: dateStr,
+        selectedFestivals: holidayData[dateStr] || []
       }, () => {
-        this.calculateDays()
-      })
+        this.calculateDays();
+      });
     }
   }
 }) 
