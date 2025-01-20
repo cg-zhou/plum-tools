@@ -1,0 +1,30 @@
+# dependencies
+/node_modules
+/miniprogram_npm
+
+# production
+/dist
+
+# misc
+.DS_Store
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# local env files
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# miniprogram specific
+project.private.config.json
+miniprogram_npm/
+coverage/ 
