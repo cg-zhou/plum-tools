@@ -1,0 +1,24 @@
+<!--calendar.wxml-->
+<view class="container">
+  <view class="calendar-header">
+    <view class="month-selector">
+      <view class="arrow" bindtap="prevMonth">◀</view>
+      <view class="current-month">{{year}}年{{month}}月</view>
+      <view class="arrow" bindtap="nextMonth">▶</view>
+    </view>
+    <view class="weekdays">
+      <view class="weekday" wx:for="{{weekdays}}" wx:key="*this">{{item}}</view>
+    </view>
+  </view>
+  <view class="calendar-body">
+    <view class="days-grid">
+      <view class="day {{item.current ? '' : 'other-month'}} {{item.today ? 'today' : ''}}"
+            wx:for="{{days}}" 
+            wx:key="date"
+            bindtap="selectDate"
+            data-date="{{item.date}}">
+        {{item.day}}
+      </view>
+    </view>
+  </view>
+</view> 

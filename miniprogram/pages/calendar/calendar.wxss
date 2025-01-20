@@ -1,0 +1,96 @@
+/**calendar.wxss**/
+.container {
+  min-height: fit-content;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  background: #fff;
+}
+
+.calendar-header {
+  background: #fff;
+  padding: 20rpx 0;
+  width: 100%;
+}
+
+.month-selector {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx 40rpx;
+}
+
+.current-month {
+  font-size: 40rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+.arrow {
+  padding: 20rpx;
+  color: #666;
+  font-size: 32rpx;
+}
+
+.weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  text-align: center;
+  background: #f8f8f8;
+}
+
+.weekday {
+  color: #999;
+  font-size: 28rpx;
+  padding: 20rpx 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.calendar-body {
+  background: #fff;
+  width: 100%;
+}
+
+.days-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  border-top: 1rpx solid #eee;
+}
+
+.day {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32rpx;
+  color: #333;
+  position: relative;
+  height: 100rpx;
+  width: 100%;
+  box-sizing: border-box;
+  border-right: 1rpx solid #eee;
+  border-bottom: 1rpx solid #eee;
+}
+
+.day:nth-child(7n+1) {
+  border-left: 1rpx solid #eee;
+}
+
+.day.other-month {
+  color: #ccc;
+}
+
+.day.today {
+  color: #07c160;
+  font-weight: bold;
+}
+
+.day.today::after {
+  content: '';
+  position: absolute;
+  bottom: 15%;
+  width: 8rpx;
+  height: 8rpx;
+  border-radius: 50%;
+  background: #07c160;
+} 
