@@ -20,16 +20,24 @@
   </view>
   <view class="calendar-body">
     <view class="days-grid">
-      <view class="day {{item.current ? '' : 'other-month'}} {{item.today ? 'today' : ''}} {{item.selected ? 'selected' : ''}}"
+      <view class="day {{item.current ? '' : 'other-month'}} {{item.today ? 'today' : ''}} {{item.selected ? 'selected' : ''}} {{item.festivals && item.festivals.length ? 'has-festival' : ''}}"
             wx:for="{{days}}" 
             wx:key="date"
             data-date="{{item.date}}"
             bindtap="selectDate">
-        {{item.day}}
+        <view class="day-number">{{item.day}}</view>
       </view>
     </view>
-    <view class="selected-date" wx:if="{{selectedDate}}">
-      已选择：{{selectedDate}}
+    <view class="selected-info" wx:if="{{selectedDate}}">
+      <view class="selected-date">已选择：{{selectedDate}}</view>
+      <view class="selected-festivals" wx:if="{{selectedFestivals && selectedFestivals.length}}">
+        <view class="festival {{festival.type}}" 
+              wx:for="{{selectedFestivals}}" 
+              wx:for-item="festival" 
+              wx:key="name">
+          {{festival.name}}
+        </view>
+      </view>
     </view>
   </view>
 </view> 
