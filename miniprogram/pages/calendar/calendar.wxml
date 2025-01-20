@@ -1,10 +1,18 @@
 <!--calendar.wxml-->
 <view class="container">
   <view class="calendar-header">
-    <view class="month-selector">
-      <view class="arrow" bindtap="prevMonth">◀</view>
-      <view class="current-month">{{year}}年{{month}}月</view>
-      <view class="arrow" bindtap="nextMonth">▶</view>
+    <view class="header-actions">
+      <view class="selector-group">
+        <picker mode="selector" range="{{years}}" value="{{yearIndex}}" bindchange="onYearChange">
+          <view class="year-selector">{{year}}年</view>
+        </picker>
+        <view class="arrow" bindtap="prevMonth">◀</view>
+        <picker mode="selector" range="{{months}}" value="{{month-1}}" bindchange="onMonthChange">
+          <view class="month-selector">{{month}}月</view>
+        </picker>
+        <view class="arrow" bindtap="nextMonth">▶</view>
+      </view>
+      <view class="today-btn" bindtap="goToday">今天</view>
     </view>
     <view class="weekdays">
       <view class="weekday" wx:for="{{weekdays}}" wx:key="*this">{{item}}</view>
@@ -12,13 +20,16 @@
   </view>
   <view class="calendar-body">
     <view class="days-grid">
-      <view class="day {{item.current ? '' : 'other-month'}} {{item.today ? 'today' : ''}}"
+      <view class="day {{item.current ? '' : 'other-month'}} {{item.today ? 'today' : ''}} {{item.selected ? 'selected' : ''}}"
             wx:for="{{days}}" 
             wx:key="date"
-            bindtap="selectDate"
-            data-date="{{item.date}}">
+            data-date="{{item.date}}"
+            bindtap="selectDate">
         {{item.day}}
       </view>
+    </view>
+    <view class="selected-date" wx:if="{{selectedDate}}">
+      已选择：{{selectedDate}}
     </view>
   </view>
 </view> 
