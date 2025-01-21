@@ -2,7 +2,7 @@ import { holidayData } from '../../utils/holidays'
 
 interface Holiday {
   name: string;
-  type: 'holiday' | 'workday' | 'festival';
+  type: 'holiday' | 'workday';
 }
 
 interface DayItem {

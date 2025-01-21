@@ -123,10 +123,6 @@
   background: rgba(140, 140, 140, 0.8);  /* 稍微淡化的灰色 */
 }
 
-.festival-mark.festival.CN {
-  background: rgba(245, 34, 45, 0.8);  /* 稍微淡化的红色 */
-}
-
 /* 日本节日样式 */
 .festival-mark.holiday.JP {
   background: rgba(24, 144, 255, 0.8);  /* 稍微淡化的蓝色 */
@@ -138,14 +134,10 @@
   background: rgba(245, 34, 45, 0.1);
 }
 
+/* 补班样式放在最后，确保不被其他样式覆盖 */
 .festival.workday.CN {
   color: rgba(140, 140, 140, 0.9);
   background: rgba(140, 140, 140, 0.1);
-}
-
-.festival.festival.CN {
-  color: rgba(245, 34, 45, 0.9);
-  background: rgba(245, 34, 45, 0.1);
 }
 
 .festival.holiday.JP {
