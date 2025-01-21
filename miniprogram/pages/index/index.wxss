@@ -4,8 +4,9 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   box-sizing: border-box;
+  padding: 60rpx 30rpx;
 }
 
 .scrollarea {
@@ -15,18 +16,44 @@
 
 .calendar-btn {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  margin-bottom: 40%;
+  background-color: #ffffff;
+  padding: 30rpx 40rpx;
+  border-radius: 20rpx;
+  width: 90%;
+  box-shadow: 0 8rpx 16rpx rgba(0, 0, 0, 0.15);
+  margin-bottom: 30rpx;
+}
+
+.btn-content {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  width: 100%;
 }
 
 .calendar-icon {
-  width: 128rpx;
-  height: 128rpx;
-  margin-bottom: 10rpx;
+  width: 80rpx;
+  height: 80rpx;
+  margin-right: 20rpx;
+  flex-shrink: 0;
+}
+
+.text-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .calendar-text {
   color: #333;
-  font-size: 28rpx;
+  font-size: 32rpx;
+  font-weight: 500;
+  margin-bottom: 8rpx;
+}
+
+.calendar-desc {
+  color: #666;
+  font-size: 24rpx;
 }

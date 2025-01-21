@@ -1,7 +1,12 @@
 <!--index.wxml-->
 <view class="container">
   <view class="calendar-btn" bindtap="onCalendarTap">
-    <image class="calendar-icon" src="/images/calendar.png" mode="aspectFit"></image>
-    <text class="calendar-text">日历</text>
+    <view class="btn-content">
+      <image class="calendar-icon" src="/images/calendar.png" mode="aspectFit"></image>
+      <view class="text-container">
+        <text class="calendar-text">节假日日历</text>
+        <text class="calendar-desc">法定节假日/调休安排/补班日期/农历信息</text>
+      </view>
+    </view>
   </view>
 </view>
