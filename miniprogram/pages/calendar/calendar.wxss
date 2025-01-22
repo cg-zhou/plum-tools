@@ -22,7 +22,7 @@
 .selector-group {
   display: flex;
   align-items: center;
-  gap: 20rpx;
+  gap: 8rpx;
 }
 
 .year-selector,
@@ -37,9 +37,36 @@
 }
 
 .arrow {
-  padding: 10rpx;
+  padding: 10rpx 12rpx;
   color: #666;
-  font-size: 28rpx;
+  font-size: 24rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20rpx;
+  height: 40rpx;
+  position: relative;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;  /* 禁用 WebKit 浏览器的点击高亮 */
+  user-select: none;  /* 禁止文本选择 */
+}
+
+.arrow::before {
+  content: '';
+  display: block;
+  width: 16rpx;
+  height: 16rpx;
+  border: 2rpx solid #666;
+  border-width: 0 0 2rpx 2rpx;
+  position: absolute;
+}
+
+.arrow.prev::before {
+  transform: rotate(45deg);
+}
+
+.arrow.next::before {
+  transform: rotate(225deg);
 }
 
 .today-btn {
@@ -87,7 +114,7 @@
   border-right: 1rpx solid #ddd;
   border-bottom: 1rpx solid #ddd;
   box-sizing: border-box;
-  padding: 10rpx 0;
+  padding: 14rpx 0 0;
 }
 
 /* 周末样式 */
@@ -229,7 +256,7 @@
   align-items: center;
   justify-content: center;
   padding: 8rpx 12rpx;
-  background: #f5222dee;
+  background: #f5222ddd;
   color: #fff;
   font-weight: 500;
 }
@@ -253,7 +280,7 @@
   align-items: center;
   justify-content: center;
   padding: 8rpx 12rpx;
-  background: #595959ee;
+  background: #595959dd;
   color: #fff;
   font-weight: 500;
 }
@@ -278,7 +305,7 @@
   align-items: center;
   justify-content: center;
   padding: 8rpx 12rpx;
-  background: #1890ffee;
+  background: #1890ffdd;
   color: #fff;
   font-weight: 500;
 }

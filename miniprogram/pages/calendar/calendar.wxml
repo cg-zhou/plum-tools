@@ -6,11 +6,11 @@
         <picker mode="selector" range="{{years}}" value="{{yearIndex}}" bindchange="onYearChange">
           <view class="year-selector">{{year}}年</view>
         </picker>
-        <view class="arrow" bindtap="prevMonth">◀</view>
+        <view class="arrow prev" bindtap="prevMonth"></view>
         <picker mode="selector" range="{{months}}" value="{{month-1}}" bindchange="onMonthChange">
           <view class="month-selector">{{month}}月</view>
         </picker>
-        <view class="arrow" bindtap="nextMonth">▶</view>
+        <view class="arrow next" bindtap="nextMonth"></view>
       </view>
       <view class="today-btn" bindtap="goToday">今天</view>
     </view>
