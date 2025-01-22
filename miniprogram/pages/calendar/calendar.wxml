@@ -40,8 +40,8 @@
         <view class="festival {{festival.type}} {{festival.region}}" 
               wx:for="{{selectedFestivals}}" 
               wx:for-item="festival" 
-              wx:key="name">
-          [{{festival.region}}] {{festival.name}}
+              wx:key="name"
+              data-name="{{festival.name}}">
         </view>
       </view>
     </view>
