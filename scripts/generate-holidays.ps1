@@ -109,7 +109,7 @@ foreach ($region in $regionYears.Keys) {
                 $holidayArray = @()
                 foreach ($item in $jsonContent.dates) {
                     $date = $item.date
-                    $name = $item.name_cn
+                    $name = $item.name
                     $type = if ($item.type -eq "holiday" -or $item.type -eq "public_holiday") { 
                         "holiday" 
                     } else { 

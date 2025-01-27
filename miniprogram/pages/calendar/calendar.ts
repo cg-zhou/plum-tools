@@ -22,7 +22,7 @@ Component({
     selectedDate: '',
     selectedFestivals: [] as Holiday[],
     weekdays: ['日', '一', '二', '三', '四', '五', '六'],
-    years: Array.from({ length: 10 }, (_, i) => new Date().getFullYear() + i),
+    years: [] as number[],
     months: Array.from({ length: 12 }, (_, i) => i + 1),
     yearIndex: 0
   },
@@ -34,17 +34,39 @@ Component({
       for (let i = 1900; i <= 2050; i++) {
         years.push(i)
       }
-      
-      const now = new Date()
-      const currentYear = now.getFullYear()
+
+      // 设置年份数组和当前年份索引
+      const currentYear = new Date().getFullYear()
       const yearIndex = years.indexOf(currentYear)
-      
+
       this.setData({
         years,
         yearIndex
       })
-      
+
+      // 初始化当前日期
       this.initCalendar()
+    }
+  },
+
+  pageLifetimes: {
+    // 添加 pageLifetimes 处理页面加载
+    show() {
+      // 获取页面参数
+      const pages = getCurrentPages()
+      const currentPage = pages[pages.length - 1]
+      const options = currentPage?.options || {}
+      const { year, month } = options
+
+      // 如果有分享参数，则跳转到对应年月
+      if (year && month) {
+        this.setData({
+          year: parseInt(year),
+          month: parseInt(month)
+        }, () => {
+          this.calculateDays()
+        })
+      }
     }
   },
 
@@ -210,6 +232,15 @@ Component({
       }, () => {
         this.calculateDays();
       });
+    },
+
+    // 添加分享给好友功能
+    onShareAppMessage() {
+      return {
+        title: `查看${this.data.year}年${this.data.month}月假日安排`,
+        path: `/pages/calendar/calendar?year=${this.data.year}&month=${this.data.month}`,
+        imageUrl: '/images/calendar.png'
+      }
     }
   }
 }) 

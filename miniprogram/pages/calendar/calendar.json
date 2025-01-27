@@ -1,4 +1,5 @@
 {
   "usingComponents": {},
-  "navigationBarTitleText": "日历"
+  "navigationBarTitleText": "日历",
+  "enableShareTimeline": true
 } 
