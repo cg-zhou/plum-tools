@@ -33,7 +33,7 @@ Component({
     currentTranslateX: 0,
     swipeProgress: 0,
     showCN: true,
-    showJP: true,
+    showJP: false,
     isSettingPanelVisible: false
   },
 
@@ -255,7 +255,7 @@ Component({
       });
     },
 
-    changeMonth(offset: number, animate: boolean = true) {
+    changeMonth(offset: number, animate: boolean = false) {
       const { year, month } = this.data;
       let newYear = year;
       let newMonth = month + offset;
@@ -268,12 +268,22 @@ Component({
         newMonth = 1;
       }
 
-      this.setData({
-        year: newYear,
-        month: newMonth
-      }, () => {
-        this.calculateDays();
-      });
+      if (animate) {
+        this.slideToMonth(offset > 0 ? 'left' : 'right');
+      } else {
+        this.setData({
+          year: newYear,
+          month: newMonth,
+          animationData: {}
+        }, () => {
+          this.calculateDays();
+          const resetAnim = wx.createAnimation({ duration: 0 });
+          resetAnim.translateX(0).step();
+          this.setData({
+            animationData: resetAnim.export()
+          });
+        });
+      }
     },
 
     startAnimation(direction: 'left' | 'right', callback: () => void) {
@@ -305,11 +315,11 @@ Component({
     },
 
     prevMonth() {
-      this.slideToMonth('right');
+      this.changeMonth(-1, false);
     },
 
     nextMonth() {
-      this.slideToMonth('left');
+      this.changeMonth(1, false);
     },
 
     selectDate(e: any) {

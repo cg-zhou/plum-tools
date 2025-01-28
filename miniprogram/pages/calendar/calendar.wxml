@@ -1,8 +1,5 @@
 <!--calendar.wxml-->
-<view class="container" 
-      bindtouchstart="onTouchStart" 
-      bindtouchmove="onTouchMove" 
-      bindtouchend="onTouchEnd">
+<view class="container">
   <view class="calendar-header">
     <view class="header-actions">
       <view class="selector-group">
@@ -26,7 +23,10 @@
       </view>
     </view>
   </view>
-  <view class="calendar-body" animation="{{animationData}}">
+  <view class="calendar-body" animation="{{animationData}}"
+        bindtouchstart="onTouchStart" 
+        bindtouchmove="onTouchMove" 
+        bindtouchend="onTouchEnd">
     <!-- 星期表头 -->
     <view class="weekdays">
       <view class="weekday" wx:for="{{weekdays}}" wx:key="*this">{{item}}</view>
