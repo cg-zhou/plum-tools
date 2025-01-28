@@ -324,3 +324,148 @@
   width: 100%;
   position: relative;
 }
+
+/* 新增样式 */
+.right-group {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+}
+
+.settings-btn {
+  width: 40rpx;
+  height: 40rpx;
+  vertical-align: middle;
+}
+
+.settings-btn:active {
+  opacity: 1;
+}
+
+.settings-panel {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 999;
+}
+
+.panel-mask {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.3);
+  backdrop-filter: blur(4rpx);
+}
+
+.panel-content {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #fff;
+  padding: 20rpx 30rpx;
+  border-radius: 24rpx 24rpx 0 0;
+  animation: panelSlideUp 0.3s ease;
+  box-shadow: 0 -4rpx 20rpx rgba(0,0,0,0.08);
+  border: 1rpx solid #eee;
+}
+
+@keyframes panelSlideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.filter-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 28rpx 0;
+  margin: 0 20rpx;
+  border-bottom: 1rpx solid #e0e0e0;
+}
+
+.country-flag {
+  font-size: 34rpx;
+  margin-right: 16rpx;
+}
+
+.filter-label {
+  font-size: 28rpx;
+  color: #333;
+  flex: 1;
+}
+
+/* 调整开关尺寸 */
+switch {
+  transform: scale(0.8);
+  transform-origin: right center;
+  filter: brightness(0.9);
+}
+
+/* 新增整体风格统一 */
+.panel-content {
+  box-shadow: 0 -4rpx 20rpx rgba(0,0,0,0.08);
+  border: 1rpx solid #eee;
+  background: #f8f8f8;
+}
+
+.filter-item {
+  border-bottom-color: #e0e0e0;
+}
+
+/* 新增地区标签样式 */
+.region-tag {
+  display: inline-flex;
+  align-items: stretch;
+  border-radius: 8rpx;
+  overflow: hidden;
+  border: 1rpx solid;
+  margin-right: 20rpx;
+}
+
+.region-tag.CN {
+  border-color: #f5222d4d;
+}
+
+.region-tag.JP {
+  border-color: #1890ff4d;
+}
+
+.region-code {
+  min-width: 40rpx;
+  padding: 8rpx 12rpx;
+  font-size: 24rpx;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.region-tag.CN .region-code {
+  background: #f5222d;
+  color: white;
+}
+
+.region-tag.JP .region-code {
+  background: #1890ff;
+  color: white;
+}
+
+.region-label {
+  padding: 8rpx 16rpx;
+  font-size: 28rpx;
+  display: flex;
+  align-items: center;
+}
+
+.region-tag.CN .region-label {
+  background: #fff0f0;
+  color: #f5222d;
+}
+
+.region-tag.JP .region-label {
+  background: #e6f4ff;
+  color: #1890ff;
+}

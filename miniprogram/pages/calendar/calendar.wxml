@@ -15,7 +15,15 @@
         </picker>
         <view class="arrow next" bindtap="nextMonth"></view>
       </view>
-      <view class="today-btn" bindtap="goToday">今天</view>
+      <view class="right-group">
+        <view class="today-btn" bindtap="goToday">今天</view>
+        <image 
+          class="settings-btn" 
+          src="/images/setting.svg" 
+          bindtap="toggleSettings"
+          mode="aspectFit"
+        />
+      </view>
     </view>
   </view>
   <view class="calendar-body" animation="{{animationData}}">
@@ -48,6 +56,25 @@
               wx:key="name"
               data-name="{{festival.name}}">
         </view>
+      </view>
+    </view>
+  </view>
+  <view class="settings-panel" wx:if="{{isSettingPanelVisible}}">
+    <view class="panel-mask" bindtap="toggleSettings"></view>
+    <view class="panel-content">
+      <view class="filter-item">
+        <view class="region-tag CN">
+          <text class="region-code">CN</text>
+          <text class="region-label">中国节假日</text>
+        </view>
+        <switch checked="{{showCN}}" bindchange="toggleCN"/>
+      </view>
+      <view class="filter-item">
+        <view class="region-tag JP">
+          <text class="region-code">JP</text>
+          <text class="region-label">日本节假日</text>
+        </view>
+        <switch checked="{{showJP}}" bindchange="toggleJP"/>
       </view>
     </view>
   </view>

@@ -31,7 +31,10 @@ Component({
     months: Array.from({ length: 12 }, (_, i) => i + 1),
     yearIndex: 0,
     currentTranslateX: 0,
-    swipeProgress: 0
+    swipeProgress: 0,
+    showCN: true,
+    showJP: true,
+    isSettingPanelVisible: false
   },
 
   lifetimes: {
@@ -48,7 +51,9 @@ Component({
 
       this.setData({
         years,
-        yearIndex
+        yearIndex,
+        showCN: wx.getStorageSync('holidayFilterCN') !== false,
+        showJP: wx.getStorageSync('holidayFilterJP') !== false
       })
 
       // 初始化当前日期
@@ -63,7 +68,7 @@ Component({
       const pages = getCurrentPages()
       const currentPage = pages[pages.length - 1]
       const options = currentPage?.options || {}
-      const { year, month } = options
+      const { year, month, cn, jp } = options
 
       // 如果有分享参数，则跳转到对应年月
       if (year && month) {
@@ -73,6 +78,13 @@ Component({
         }, () => {
           this.calculateDays()
         })
+      }
+
+      if (cn !== undefined || jp !== undefined) {
+        this.setData({
+          showCN: cn !== '0',
+          showJP: jp !== '0'
+        });
       }
     }
   },
@@ -180,7 +192,7 @@ Component({
           current: false,
           today: dateStr === todayStr,
           selected: dateStr === this.data.selectedDate,
-          festivals: holidayData[dateStr] || []
+          festivals: this.filterFestivals(holidayData[dateStr] || [])
         });
       }
 
@@ -194,7 +206,7 @@ Component({
           current: true,
           today: dateStr === todayStr,
           selected: dateStr === this.data.selectedDate,
-          festivals: holidayData[dateStr] || []
+          festivals: this.filterFestivals(holidayData[dateStr] || [])
         });
       }
 
@@ -209,11 +221,19 @@ Component({
           current: false,
           today: dateStr === todayStr,
           selected: dateStr === this.data.selectedDate,
-          festivals: holidayData[dateStr] || []
+          festivals: this.filterFestivals(holidayData[dateStr] || [])
         });
       }
 
       this.setData({ days });
+    },
+
+    filterFestivals(festivals: Holiday[]): Holiday[] {
+      return festivals.filter(festival => {
+        const region = (festival as any).region || 'CN'; // 假设数据中有 region 字段
+        return (region === 'CN' && this.data.showCN) || 
+               (region === 'JP' && this.data.showJP);
+      });
     },
 
     onYearChange(e: any) {
@@ -326,7 +346,7 @@ Component({
     onShareAppMessage() {
       return {
         title: `查看${this.data.year}年${this.data.month}月假日安排`,
-        path: `/pages/calendar/calendar?year=${this.data.year}&month=${this.data.month}`,
+        path: `/pages/calendar/calendar?year=${this.data.year}&month=${this.data.month}&cn=${this.data.showCN ? 1 : 0}&jp=${this.data.showJP ? 1 : 0}`,
         imageUrl: '/images/calendar.png'
       }
     },
@@ -358,6 +378,28 @@ Component({
           isAnimating: false
         });
       }, 300);
+    },
+
+    toggleSettings() {
+      this.setData({
+        isSettingPanelVisible: !this.data.isSettingPanelVisible
+      });
+    },
+
+    toggleCN(e: any) {
+      const value = e.detail.value;
+      this.setData({ showCN: value }, () => {
+        wx.setStorageSync('holidayFilterCN', value);
+        this.calculateDays();
+      });
+    },
+
+    toggleJP(e: any) {
+      const value = e.detail.value;
+      this.setData({ showJP: value }, () => {
+        wx.setStorageSync('holidayFilterJP', value);
+        this.calculateDays();
+      });
     }
   }
 }) 
