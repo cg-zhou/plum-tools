@@ -1,5 +1,11 @@
 import { holidayData } from '../../utils/holidays'
 
+// 定义默认值常量
+const DEFAULT_SETTINGS = {
+  SHOW_CN: true,
+  SHOW_JP: false
+};
+
 interface Holiday {
   name: string;
   type: 'holiday' | 'workday';
@@ -32,8 +38,8 @@ Component({
     yearIndex: 0,
     currentTranslateX: 0,
     swipeProgress: 0,
-    showCN: true,
-    showJP: false,
+    showCN: DEFAULT_SETTINGS.SHOW_CN,
+    showJP: DEFAULT_SETTINGS.SHOW_JP,
     isSettingPanelVisible: false
   },
 
@@ -52,8 +58,8 @@ Component({
       this.setData({
         years,
         yearIndex,
-        showCN: wx.getStorageSync('holidayFilterCN') !== false,
-        showJP: wx.getStorageSync('holidayFilterJP') !== false
+        showCN: wx.getStorageSync('holidayFilterCN') || DEFAULT_SETTINGS.SHOW_CN,
+        showJP: wx.getStorageSync('holidayFilterJP') || DEFAULT_SETTINGS.SHOW_JP
       })
 
       // 初始化当前日期
