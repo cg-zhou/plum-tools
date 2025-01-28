@@ -29,7 +29,9 @@ Component({
     weekdays: ['日', '一', '二', '三', '四', '五', '六'],
     years: [] as number[],
     months: Array.from({ length: 12 }, (_, i) => i + 1),
-    yearIndex: 0
+    yearIndex: 0,
+    currentTranslateX: 0,
+    swipeProgress: 0
   },
 
   lifetimes: {
@@ -79,27 +81,60 @@ Component({
     onTouchStart(e: any) {
       this.setData({
         touchStartX: e.touches[0].clientX,
-        isSwiping: false
+        isSwiping: false,
+        currentTranslateX: 0
       });
     },
 
     onTouchMove(e: any) {
+      if (this.data.isAnimating) return;
+      
+      const deltaX = e.touches[0].clientX - this.data.touchStartX;
+      const screenWidth = wx.getWindowInfo().windowWidth;
+      
+      // 限制最大滑动距离为屏幕宽度的 30%
+      const maxDelta = screenWidth * 0.3;
+      const translateX = Math.min(Math.max(deltaX, -maxDelta), maxDelta);
+      
+      const animation = wx.createAnimation({
+        duration: 0, // 实时跟随不需要持续时间
+        timingFunction: 'linear'
+      });
+      
+      animation.translateX(translateX).step();
+      
       this.setData({
         touchEndX: e.touches[0].clientX,
-        isSwiping: true
+        isSwiping: true,
+        animationData: animation.export(),
+        currentTranslateX: translateX
       });
     },
 
     onTouchEnd() {
-      const { touchStartX, touchEndX, isSwiping } = this.data;
+      const { touchStartX, touchEndX, isSwiping, currentTranslateX } = this.data;
       const deltaX = touchEndX - touchStartX;
+      const screenWidth = wx.getWindowInfo().windowWidth;
 
-      if (isSwiping && Math.abs(deltaX) > 50) {
-        if (deltaX > 0) {
-          this.changeMonth(-1, true);
-        } else {
-          this.changeMonth(1, true);
-        }
+      if (Math.abs(currentTranslateX) > screenWidth * 0.15) {
+        // 达到切换阈值，执行切换动画
+        const direction = currentTranslateX > 0 ? 'right' : 'left';
+        this.slideToMonth(direction);
+      } else {
+        // 未达阈值，回弹动画
+        const animation = wx.createAnimation({
+          duration: 300,
+          timingFunction: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+        });
+        animation.translateX(0).step();
+        this.setData({
+          animationData: animation.export(),
+          isAnimating: true
+        });
+        
+        setTimeout(() => {
+          this.setData({ isAnimating: false });
+        }, 300);
       }
     },
 
@@ -201,8 +236,6 @@ Component({
     },
 
     changeMonth(offset: number, animate: boolean = true) {
-      if (this.data.isAnimating) return;
-
       const { year, month } = this.data;
       let newYear = year;
       let newMonth = month + offset;
@@ -215,24 +248,12 @@ Component({
         newMonth = 1;
       }
 
-      if (animate) {
-        this.startAnimation(offset > 0 ? 'left' : 'right', () => {
-          this.setData({
-            year: newYear,
-            month: newMonth,
-            isAnimating: false
-          }, () => {
-            this.calculateDays();
-          });
-        });
-      } else {
-        this.setData({
-          year: newYear,
-          month: newMonth
-        }, () => {
-          this.calculateDays();
-        });
-      }
+      this.setData({
+        year: newYear,
+        month: newMonth
+      }, () => {
+        this.calculateDays();
+      });
     },
 
     startAnimation(direction: 'left' | 'right', callback: () => void) {
@@ -264,11 +285,11 @@ Component({
     },
 
     prevMonth() {
-      this.changeMonth(-1, false);
+      this.slideToMonth('right');
     },
 
     nextMonth() {
-      this.changeMonth(1, false);
+      this.slideToMonth('left');
     },
 
     selectDate(e: any) {
@@ -308,6 +329,35 @@ Component({
         path: `/pages/calendar/calendar?year=${this.data.year}&month=${this.data.month}`,
         imageUrl: '/images/calendar.png'
       }
+    },
+
+    slideToMonth(direction: 'left' | 'right') {
+      this.setData({ isAnimating: true });
+      
+      const animation = wx.createAnimation({
+        duration: 300,
+        timingFunction: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+      });
+      
+      const windowInfo = wx.getWindowInfo();
+      const targetX = direction === 'left' ? -windowInfo.windowWidth : windowInfo.windowWidth;
+      
+      animation.translateX(targetX).step();
+      
+      this.setData({
+        animationData: animation.export()
+      });
+
+      setTimeout(() => {
+        this.changeMonth(direction === 'left' ? 1 : -1, false);
+        // 重置位置并刷新数据
+        const resetAnimation = wx.createAnimation({ duration: 0 });
+        resetAnimation.translateX(0).step();
+        this.setData({
+          animationData: resetAnimation.export(),
+          isAnimating: false
+        });
+      }, 300);
     }
   }
 }) 
