@@ -1,5 +1,8 @@
 <!--calendar.wxml-->
-<view class="container">
+<view class="container" 
+      bindtouchstart="onTouchStart" 
+      bindtouchmove="onTouchMove" 
+      bindtouchend="onTouchEnd">
   <view class="calendar-header">
     <view class="header-actions">
       <view class="selector-group">
@@ -14,11 +17,13 @@
       </view>
       <view class="today-btn" bindtap="goToday">今天</view>
     </view>
+  </view>
+  <view class="calendar-body" animation="{{animationData}}">
+    <!-- 星期表头 -->
     <view class="weekdays">
       <view class="weekday" wx:for="{{weekdays}}" wx:key="*this">{{item}}</view>
     </view>
-  </view>
-  <view class="calendar-body">
+    <!-- 日期格子 -->
     <view class="days-grid">
       <view class="day {{item.current ? '' : 'other-month'}} {{item.today ? 'today' : ''}} {{item.selected ? 'selected' : ''}}"
             wx:for="{{days}}" 

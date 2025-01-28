@@ -16,6 +16,11 @@ interface DayItem {
 
 Component({
   data: {
+    isSwiping: false,
+    animationData: {},
+    isAnimating: false,
+    touchStartX: 0,
+    touchEndX: 0,
     year: new Date().getFullYear(),
     month: new Date().getMonth() + 1,
     days: [] as DayItem[],
@@ -71,6 +76,33 @@ Component({
   },
 
   methods: {
+    onTouchStart(e: any) {
+      this.setData({
+        touchStartX: e.touches[0].clientX,
+        isSwiping: false
+      });
+    },
+
+    onTouchMove(e: any) {
+      this.setData({
+        touchEndX: e.touches[0].clientX,
+        isSwiping: true
+      });
+    },
+
+    onTouchEnd() {
+      const { touchStartX, touchEndX, isSwiping } = this.data;
+      const deltaX = touchEndX - touchStartX;
+
+      if (isSwiping && Math.abs(deltaX) > 50) {
+        if (deltaX > 0) {
+          this.changeMonth(-1, true);
+        } else {
+          this.changeMonth(1, true);
+        }
+      }
+    },
+
     initCalendar() {
       const now = new Date()
       this.setData({
@@ -90,18 +122,18 @@ Component({
     calculateDays() {
       const { year, month } = this.data;
       const days: DayItem[] = [];
-      
+
       // 获取当前月的第一天
       const firstDay = new Date(year, month - 1, 1);
       // 获取当前月的最后一天
       const lastDay = new Date(year, month, 0);
       // 获取上个月的最后一天
       const prevLastDay = new Date(year, month - 1, 0);
-      
+
       // 获取当前日期
       const today = new Date();
       const todayStr = this.formatDate(today);
-      
+
       // 填充上个月的日期
       for (let i = firstDay.getDay(); i > 0; i--) {
         const day = prevLastDay.getDate() - i + 1;
@@ -116,7 +148,7 @@ Component({
           festivals: holidayData[dateStr] || []
         });
       }
-      
+
       // 填充当前月的日期
       for (let day = 1; day <= lastDay.getDate(); day++) {
         const date = new Date(year, month - 1, day);
@@ -130,7 +162,7 @@ Component({
           festivals: holidayData[dateStr] || []
         });
       }
-      
+
       // 填充下个月的日期
       const remainingDays = 42 - days.length; // 保持6行
       for (let day = 1; day <= remainingDays; day++) {
@@ -145,7 +177,7 @@ Component({
           festivals: holidayData[dateStr] || []
         });
       }
-      
+
       this.setData({ days });
     },
 
@@ -168,40 +200,75 @@ Component({
       });
     },
 
-    prevMonth() {
+    changeMonth(offset: number, animate: boolean = true) {
+      if (this.data.isAnimating) return;
+
       const { year, month } = this.data;
-      if (month === 1) {
-        this.setData({
-          year: year - 1,
-          month: 12
-        }, () => {
-          this.calculateDays();
+      let newYear = year;
+      let newMonth = month + offset;
+
+      if (newMonth < 1) {
+        newYear -= 1;
+        newMonth = 12;
+      } else if (newMonth > 12) {
+        newYear += 1;
+        newMonth = 1;
+      }
+
+      if (animate) {
+        this.startAnimation(offset > 0 ? 'left' : 'right', () => {
+          this.setData({
+            year: newYear,
+            month: newMonth,
+            isAnimating: false
+          }, () => {
+            this.calculateDays();
+          });
         });
       } else {
         this.setData({
-          month: month - 1
+          year: newYear,
+          month: newMonth
         }, () => {
           this.calculateDays();
         });
       }
     },
 
-    nextMonth() {
-      const { year, month } = this.data;
-      if (month === 12) {
-        this.setData({
-          year: year + 1,
-          month: 1
-        }, () => {
-          this.calculateDays();
-        });
+    startAnimation(direction: 'left' | 'right', callback: () => void) {
+      this.setData({ isAnimating: true });
+
+      const animation = wx.createAnimation({
+        duration: 500,
+        timingFunction: 'ease-out'
+      });
+
+      if (direction === 'left') {
+        animation.translateX('-100%').step();
       } else {
-        this.setData({
-          month: month + 1
-        }, () => {
-          this.calculateDays();
-        });
+        animation.translateX('100%').step();
       }
+
+      this.setData({
+        animationData: animation.export()
+      });
+
+      setTimeout(() => {
+        animation.translateX(0).step();
+        this.setData({
+          animationData: animation.export()
+        });
+
+        setTimeout(callback, 500);
+      }, 50);
+    },
+
+    prevMonth() {
+      this.changeMonth(-1, false);
+    },
+
+    nextMonth() {
+      this.changeMonth(1, false);
     },
 
     selectDate(e: any) {
@@ -210,7 +277,7 @@ Component({
         ...day,
         selected: day.date === date
       }));
-      
+
       this.setData({
         days,
         selectedDate: date,
@@ -223,7 +290,7 @@ Component({
       const year = now.getFullYear();
       const month = now.getMonth() + 1;
       const dateStr = this.formatDate(now);
-      
+
       this.setData({
         year,
         month,

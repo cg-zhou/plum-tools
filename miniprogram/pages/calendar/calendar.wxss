@@ -5,6 +5,8 @@
   flex-direction: column;
   box-sizing: border-box;
   background: #fff;
+  touch-action: pan-y;
+  user-select: none;
 }
 
 .calendar-header {
@@ -91,8 +93,8 @@
 }
 
 .calendar-body {
-  background: #fff;
   width: 100%;
+  position: relative;
 }
 
 .days-grid {
@@ -316,4 +318,9 @@
   align-items: center;
   padding: 8rpx 16rpx;
   color: #1890ff;
+}
+
+.calendar-content {
+  width: 100%;
+  position: relative;
 }
