@@ -1,4 +1,5 @@
 import { holidayData } from '../../utils/holidays'
+import { filterFestivals } from '../../utils/filterFestivals'
 
 // 定义默认值常量
 const DEFAULT_SETTINGS = {
@@ -131,7 +132,6 @@ Component({
 
     onTouchEnd() {
       const { touchStartX, touchEndX, isSwiping, currentTranslateX } = this.data;
-      const deltaX = touchEndX - touchStartX;
       const screenWidth = wx.getWindowInfo().windowWidth;
 
       if (Math.abs(currentTranslateX) > screenWidth * 0.15) {
@@ -335,10 +335,17 @@ Component({
         selected: day.date === date
       }));
 
+      // 使用工具函数过滤节假日
+      const filteredFestivals = filterFestivals(
+        holidayData[date] || [],
+        this.data.showCN,
+        this.data.showJP
+      );
+
       this.setData({
         days,
         selectedDate: date,
-        selectedFestivals: holidayData[date] || []
+        selectedFestivals: filteredFestivals
       });
     },
 
@@ -407,6 +414,8 @@ Component({
       this.setData({ showCN: value }, () => {
         wx.setStorageSync('holidayFilterCN', value);
         this.calculateDays();
+        // 更新当前选中日期的节假日列表
+        this.updateSelectedFestivals();
       });
     },
 
@@ -415,7 +424,23 @@ Component({
       this.setData({ showJP: value }, () => {
         wx.setStorageSync('holidayFilterJP', value);
         this.calculateDays();
+        // 更新当前选中日期的节假日列表
+        this.updateSelectedFestivals();
       });
+    },
+
+    // 新增方法：更新当前选中日期的节假日列表
+    updateSelectedFestivals() {
+      if (this.data.selectedDate) {
+        const filteredFestivals = filterFestivals(
+          holidayData[this.data.selectedDate] || [],
+          this.data.showCN,
+          this.data.showJP
+        );
+        this.setData({
+          selectedFestivals: filteredFestivals
+        });
+      }
     }
   }
 }) 

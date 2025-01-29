@@ -49,12 +49,12 @@
   height: 40rpx;
   position: relative;
   cursor: pointer;
-  -webkit-tap-highlight-color: transparent;  /* 禁用 WebKit 浏览器的点击高亮 */
-  user-select: none;  /* 禁止文本选择 */
+  -webkit-tap-highlight-color: transparent; /* 禁用 WebKit 浏览器的点击高亮 */
+  user-select: none; /* 禁止文本选择 */
 }
 
 .arrow::before {
-  content: '';
+  content: "";
   display: block;
   width: 16rpx;
   height: 16rpx;
@@ -121,7 +121,7 @@
 
 /* 周末样式 */
 .day:nth-child(7n),
-.day:nth-child(7n+1) {
+.day:nth-child(7n + 1) {
   background-color: #f0f0f0;
 }
 
@@ -184,7 +184,7 @@
 }
 
 .day.today::before {
-  content: '';
+  content: "";
   position: absolute;
   bottom: 20%;
   width: 8rpx;
@@ -194,8 +194,8 @@
 }
 
 .day.selected {
-  background: #e6fff0;  /* 浅绿色背景 */
-  color: #07c160;  /* 绿色文字 */
+  background: #e6fff0; /* 浅绿色背景 */
+  color: #07c160; /* 绿色文字 */
   font-weight: bold;
 }
 
@@ -219,7 +219,7 @@
 }
 
 .selected-date::before {
-  content: '';
+  content: "";
   display: inline-block;
   width: 8rpx;
   height: 40rpx;
@@ -253,7 +253,7 @@
 }
 
 .festival.holiday.CN::before {
-  content: 'CN';
+  content: "CN";
   display: flex;
   align-items: center;
   justify-content: center;
@@ -277,7 +277,7 @@
 }
 
 .festival.workday.CN::before {
-  content: 'CN';
+  content: "CN";
   display: flex;
   align-items: center;
   justify-content: center;
@@ -302,7 +302,7 @@
 }
 
 .festival.holiday.JP::before {
-  content: 'JP';
+  content: "JP";
   display: flex;
   align-items: center;
   justify-content: center;
@@ -329,12 +329,13 @@
 .right-group {
   display: flex;
   align-items: center;
-  gap: 20rpx;
 }
 
 .settings-btn {
   width: 40rpx;
   height: 40rpx;
+  margin-left: 20px;
+  margin-right: 10px;
   vertical-align: middle;
 }
 
@@ -355,7 +356,7 @@
   position: absolute;
   width: 100%;
   height: 100%;
-  background: rgba(0,0,0,0.3);
+  background: rgba(0, 0, 0, 0.3);
   backdrop-filter: blur(4rpx);
 }
 
@@ -368,13 +369,17 @@
   padding: 20rpx 30rpx;
   border-radius: 24rpx 24rpx 0 0;
   animation: panelSlideUp 0.3s ease;
-  box-shadow: 0 -4rpx 20rpx rgba(0,0,0,0.08);
+  box-shadow: 0 -4rpx 20rpx rgba(0, 0, 0, 0.08);
   border: 1rpx solid #eee;
 }
 
 @keyframes panelSlideUp {
-  from { transform: translateY(100%); }
-  to { transform: translateY(0); }
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
 }
 
 .filter-item {
@@ -406,7 +411,7 @@ switch {
 
 /* 新增整体风格统一 */
 .panel-content {
-  box-shadow: 0 -4rpx 20rpx rgba(0,0,0,0.08);
+  box-shadow: 0 -4rpx 20rpx rgba(0, 0, 0, 0.08);
   border: 1rpx solid #eee;
   background: #f8f8f8;
 }

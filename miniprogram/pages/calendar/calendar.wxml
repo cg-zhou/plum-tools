@@ -59,6 +59,7 @@
       </view>
     </view>
   </view>
+
   <view class="settings-panel" wx:if="{{isSettingPanelVisible}}">
     <view class="panel-mask" bindtap="toggleSettings"></view>
     <view class="panel-content">
