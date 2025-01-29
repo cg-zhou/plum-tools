@@ -366,7 +366,7 @@
   left: 0;
   right: 0;
   background: #fff;
-  padding: 20rpx 30rpx;
+  padding: 20rpx 30rpx 60rpx 30rpx;
   border-radius: 24rpx 24rpx 0 0;
   animation: panelSlideUp 0.3s ease;
   box-shadow: 0 -4rpx 20rpx rgba(0, 0, 0, 0.08);
