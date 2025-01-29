@@ -4,17 +4,16 @@ if (-not (Test-Path $outputDir)) {
     New-Item -ItemType Directory -Path $outputDir -Force
 }
 
-# 定义不同地区的年份范围  
-$regionYears = @{}  
-
-$regionYears["CN"] = @{  
-    "start" = 2002 
-    "end" = 2025
-}  
-
-$regionYears["JP"] = @{  
-    "start" = 2000  
-    "end" = 2026
+# 定义不同地区的年份范围，按照优先级排序  
+$regionYears = [ordered]@{  
+    "CN" = @{  
+        "start" = 2002 
+        "end" = 2025
+    }  
+    "JP" = @{  
+        "start" = 2000  
+        "end" = 2026
+    }  
 }  
 
 $outputFile = Join-Path $outputDir "holidays.ts"
