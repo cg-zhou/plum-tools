@@ -1,16 +1,11 @@
-import { holidayData } from '../../utils/holidays'
-import { filterFestivals } from '../../utils/filterFestivals'
+import { CalendarService } from './core/calendarService';
+import { Holiday, CalendarSettings } from './core/calendarModel';
 
 // 定义默认值常量
 const DEFAULT_SETTINGS = {
   SHOW_CN: true,
   SHOW_JP: false
 };
-
-interface Holiday {
-  name: string;
-  type: 'holiday' | 'workday';
-}
 
 interface DayItem {
   date: string;      // YYYY-MM-DD
@@ -39,8 +34,8 @@ Component({
     yearIndex: 0,
     currentTranslateX: 0,
     swipeProgress: 0,
-    showCN: DEFAULT_SETTINGS.SHOW_CN,
-    showJP: DEFAULT_SETTINGS.SHOW_JP,
+    showCN: true,
+    showJP: false,
     isSettingPanelVisible: false
   },
 
@@ -55,12 +50,13 @@ Component({
       // 设置年份数组和当前年份索引
       const currentYear = new Date().getFullYear()
       const yearIndex = years.indexOf(currentYear)
+      const settings = CalendarService.getDefaultSettings();
 
       this.setData({
         years,
         yearIndex,
-        showCN: wx.getStorageSync('holidayFilterCN') || DEFAULT_SETTINGS.SHOW_CN,
-        showJP: wx.getStorageSync('holidayFilterJP') || DEFAULT_SETTINGS.SHOW_JP
+        showCN: settings.showCN,
+        showJP: settings.showJP
       })
 
       // 初始化当前日期
@@ -88,10 +84,12 @@ Component({
       }
 
       if (cn !== undefined || jp !== undefined) {
-        this.setData({
+        const settings: CalendarSettings = {
           showCN: cn !== '0',
           showJP: jp !== '0'
-        });
+        };
+        this.setData(settings);
+        CalendarService.saveSettings(settings);
       }
     }
   },
@@ -109,14 +107,15 @@ Component({
       if (this.data.isAnimating) return;
       
       const deltaX = e.touches[0].clientX - this.data.touchStartX;
-      const screenWidth = wx.getWindowInfo().windowWidth;
+      const windowInfo = wx.getWindowInfo();
+      const screenWidth = windowInfo.windowWidth;
       
       // 限制最大滑动距离为屏幕宽度的 30%
       const maxDelta = screenWidth * 0.3;
       const translateX = Math.min(Math.max(deltaX, -maxDelta), maxDelta);
       
       const animation = wx.createAnimation({
-        duration: 0, // 实时跟随不需要持续时间
+        duration: 0,
         timingFunction: 'linear'
       });
       
@@ -132,7 +131,8 @@ Component({
 
     onTouchEnd() {
       const { touchStartX, touchEndX, isSwiping, currentTranslateX } = this.data;
-      const screenWidth = wx.getWindowInfo().windowWidth;
+      const windowInfo = wx.getWindowInfo();
+      const screenWidth = windowInfo.windowWidth;
 
       if (Math.abs(currentTranslateX) > screenWidth * 0.15) {
         // 达到切换阈值，执行切换动画
@@ -142,7 +142,7 @@ Component({
         // 未达阈值，回弹动画
         const animation = wx.createAnimation({
           duration: 300,
-          timingFunction: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+          timingFunction: 'ease-out'
         });
         animation.translateX(0).step();
         this.setData({
@@ -165,81 +165,11 @@ Component({
       this.calculateDays()
     },
 
-    formatDate(date: Date): string {
-      const year = date.getFullYear();
-      const month = (date.getMonth() + 1).toString().padStart(2, '0');
-      const day = date.getDate().toString().padStart(2, '0');
-      return `${year}-${month}-${day}`;
-    },
-
     calculateDays() {
-      const { year, month } = this.data;
-      const days: DayItem[] = [];
-
-      // 获取当前月的第一天
-      const firstDay = new Date(year, month - 1, 1);
-      // 获取当前月的最后一天
-      const lastDay = new Date(year, month, 0);
-      // 获取上个月的最后一天
-      const prevLastDay = new Date(year, month - 1, 0);
-
-      // 获取当前日期
-      const today = new Date();
-      const todayStr = this.formatDate(today);
-
-      // 填充上个月的日期
-      for (let i = firstDay.getDay(); i > 0; i--) {
-        const day = prevLastDay.getDate() - i + 1;
-        const date = new Date(year, month - 2, day);
-        const dateStr = this.formatDate(date);
-        days.push({
-          date: dateStr,
-          day,
-          current: false,
-          today: dateStr === todayStr,
-          selected: dateStr === this.data.selectedDate,
-          festivals: this.filterFestivals(holidayData[dateStr] || [])
-        });
-      }
-
-      // 填充当前月的日期
-      for (let day = 1; day <= lastDay.getDate(); day++) {
-        const date = new Date(year, month - 1, day);
-        const dateStr = this.formatDate(date);
-        days.push({
-          date: dateStr,
-          day,
-          current: true,
-          today: dateStr === todayStr,
-          selected: dateStr === this.data.selectedDate,
-          festivals: this.filterFestivals(holidayData[dateStr] || [])
-        });
-      }
-
-      // 填充下个月的日期
-      const remainingDays = 42 - days.length; // 保持6行
-      for (let day = 1; day <= remainingDays; day++) {
-        const date = new Date(year, month, day);
-        const dateStr = this.formatDate(date);
-        days.push({
-          date: dateStr,
-          day,
-          current: false,
-          today: dateStr === todayStr,
-          selected: dateStr === this.data.selectedDate,
-          festivals: this.filterFestivals(holidayData[dateStr] || [])
-        });
-      }
-
+      const { year, month, selectedDate, showCN, showJP } = this.data;
+      const settings: CalendarSettings = { showCN, showJP };
+      const days = CalendarService.calculateDays(year, month, settings, selectedDate);
       this.setData({ days });
-    },
-
-    filterFestivals(festivals: Holiday[]): Holiday[] {
-      return festivals.filter(festival => {
-        const region = (festival as any).region || 'CN'; // 假设数据中有 region 字段
-        return (region === 'CN' && this.data.showCN) || 
-               (region === 'JP' && this.data.showJP);
-      });
     },
 
     onYearChange(e: any) {
@@ -335,17 +265,18 @@ Component({
         selected: day.date === date
       }));
 
-      // 使用工具函数过滤节假日
-      const filteredFestivals = filterFestivals(
-        holidayData[date] || [],
-        this.data.showCN,
-        this.data.showJP
-      );
+      const settings: CalendarSettings = {
+        showCN: this.data.showCN,
+        showJP: this.data.showJP
+      };
+
+      const selectedDay = this.data.days.find(d => d.date === date);
+      const selectedFestivals = selectedDay ? CalendarService.filterFestivals(selectedDay.festivals, settings) : [];
 
       this.setData({
         days,
         selectedDate: date,
-        selectedFestivals: filteredFestivals
+        selectedFestivals
       });
     },
 
@@ -353,13 +284,12 @@ Component({
       const now = new Date();
       const year = now.getFullYear();
       const month = now.getMonth() + 1;
-      const dateStr = this.formatDate(now);
+      const dateStr = CalendarService.formatDate(now);
 
       this.setData({
         year,
         month,
-        selectedDate: dateStr,
-        selectedFestivals: holidayData[dateStr] || []
+        selectedDate: dateStr
       }, () => {
         this.calculateDays();
       });
@@ -367,11 +297,11 @@ Component({
 
     // 添加分享给好友功能
     onShareAppMessage() {
-      return {
-        title: `查看${this.data.year}年${this.data.month}月假日安排`,
-        path: `/pages/calendar/calendar?year=${this.data.year}&month=${this.data.month}&cn=${this.data.showCN ? 1 : 0}&jp=${this.data.showJP ? 1 : 0}`,
-        imageUrl: '/images/calendar.png'
-      }
+      const settings: CalendarSettings = {
+        showCN: this.data.showCN,
+        showJP: this.data.showJP
+      };
+      return CalendarService.getShareInfo(this.data.year, this.data.month, settings);
     },
 
     slideToMonth(direction: 'left' | 'right') {
@@ -379,11 +309,12 @@ Component({
       
       const animation = wx.createAnimation({
         duration: 300,
-        timingFunction: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+        timingFunction: 'ease-out'
       });
       
       const windowInfo = wx.getWindowInfo();
-      const targetX = direction === 'left' ? -windowInfo.windowWidth : windowInfo.windowWidth;
+      const screenWidth = windowInfo.windowWidth;
+      const targetX = Number(direction === 'left' ? -screenWidth : screenWidth);
       
       animation.translateX(targetX).step();
       
@@ -410,21 +341,29 @@ Component({
     },
 
     toggleCN(e: any) {
-      const value = e.detail.value;
-      this.setData({ showCN: value }, () => {
-        wx.setStorageSync('holidayFilterCN', value);
+      const showCN = e.detail.value;
+      const settings: CalendarSettings = {
+        showCN,
+        showJP: this.data.showJP
+      };
+      
+      this.setData({ showCN }, () => {
+        CalendarService.saveSettings(settings);
         this.calculateDays();
-        // 更新当前选中日期的节假日列表
         this.updateSelectedFestivals();
       });
     },
 
     toggleJP(e: any) {
-      const value = e.detail.value;
-      this.setData({ showJP: value }, () => {
-        wx.setStorageSync('holidayFilterJP', value);
+      const showJP = e.detail.value;
+      const settings: CalendarSettings = {
+        showCN: this.data.showCN,
+        showJP
+      };
+      
+      this.setData({ showJP }, () => {
+        CalendarService.saveSettings(settings);
         this.calculateDays();
-        // 更新当前选中日期的节假日列表
         this.updateSelectedFestivals();
       });
     },
@@ -432,14 +371,15 @@ Component({
     // 新增方法：更新当前选中日期的节假日列表
     updateSelectedFestivals() {
       if (this.data.selectedDate) {
-        const filteredFestivals = filterFestivals(
-          holidayData[this.data.selectedDate] || [],
-          this.data.showCN,
-          this.data.showJP
-        );
-        this.setData({
-          selectedFestivals: filteredFestivals
-        });
+        const settings: CalendarSettings = {
+          showCN: this.data.showCN,
+          showJP: this.data.showJP
+        };
+        
+        const selectedDay = this.data.days.find(d => d.date === this.data.selectedDate);
+        const selectedFestivals = selectedDay ? CalendarService.filterFestivals(selectedDay.festivals, settings) : [];
+        
+        this.setData({ selectedFestivals });
       }
     }
   }
