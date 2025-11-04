@@ -8,7 +8,7 @@ if (-not (Test-Path $outputDir)) {
 $regionYears = [ordered]@{  
     "CN" = @{  
         "start" = 2002 
-        "end" = 2025
+        "end" = 2026
     }  
     "JP" = @{  
         "start" = 2000  
