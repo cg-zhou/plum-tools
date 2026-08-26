@@ -81,10 +81,12 @@
 
 .weekdays {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   text-align: center;
-  padding: 30rpx 0;
+  width: 100%;
+  padding: 30rpx 1rpx;
   border-bottom: 1rpx solid #eee;
+  box-sizing: border-box;
 }
 
 .weekday {
@@ -97,11 +99,24 @@
   position: relative;
 }
 
+.calendar-swiper {
+  width: 100%;
+  height: 720rpx;
+}
+
+.calendar-slide {
+  width: 100%;
+  background: #fff;
+}
+
 .days-grid {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  width: 100%;
   border-left: 1rpx solid #ddd;
+  border-right: 1rpx solid #ddd;
   border-top: 1rpx solid #ddd;
+  box-sizing: border-box;
 }
 
 .day {

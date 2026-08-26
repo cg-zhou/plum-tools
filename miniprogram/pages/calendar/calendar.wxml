@@ -14,46 +14,38 @@
       </view>
       <view class="right-group">
         <view class="today-btn" bindtap="goToday">今天</view>
-        <image 
-          class="settings-btn" 
-          src="/images/setting.svg" 
-          bindtap="toggleSettings"
-          mode="aspectFit"
-        />
+        <image class="settings-btn" src="/images/setting.svg" bindtap="toggleSettings" mode="aspectFit"/>
       </view>
     </view>
   </view>
-  <view class="calendar-body" animation="{{animationData}}"
-        bindtouchstart="onTouchStart" 
-        bindtouchmove="onTouchMove" 
-        bindtouchend="onTouchEnd">
-    <!-- 星期表头 -->
-    <view class="weekdays">
-      <view class="weekday" wx:for="{{weekdays}}" wx:key="*this">{{item}}</view>
-    </view>
-    <!-- 日期格子 -->
-    <view class="days-grid">
-      <view class="day {{item.current ? '' : 'other-month'}} {{item.today ? 'today' : ''}} {{item.selected ? 'selected' : ''}}"
-            wx:for="{{days}}" 
-            wx:key="date"
-            data-date="{{item.date}}"
-            bindtap="selectDate">
-        <view class="day-number">{{item.day}}</view>
-        <view class="festival-marks" wx:if="{{item.festivals && item.festivals.length}}">
-          <view class="festival-mark {{festival.type}} {{festival.region}}" 
-                wx:for="{{item.festivals}}" 
-                wx:for-item="festival" 
-                wx:key="name"></view>
+  <view class="weekdays">
+    <view class="weekday" wx:for="{{weekdays}}" wx:for-item="weekday" wx:key="*this">{{weekday}}</view>
+  </view>
+  <swiper class="calendar-swiper" current="{{swiperCurrent}}" circular duration="300" bindchange="onSwiperChange">
+    <swiper-item wx:for="{{calendarPanels}}" wx:for-item="panel" wx:key="key">
+      <view class="calendar-slide">
+        <view class="days-grid">
+          <view class="day {{dayItem.current ? '' : 'other-month'}} {{dayItem.today ? 'today' : ''}} {{dayItem.selected ? 'selected' : ''}}"
+                wx:for="{{panel.days}}" wx:for-item="dayItem" wx:key="date"
+                data-date="{{dayItem.date}}" bindtap="selectDate">
+            <view class="day-number">{{dayItem.day}}</view>
+            <view class="festival-marks" wx:if="{{dayItem.festivals && dayItem.festivals.length}}">
+              <view class="festival-mark {{festival.type}} {{festival.region}}"
+                    wx:for="{{dayItem.festivals}}" wx:for-item="festival" wx:key="*this"></view>
+            </view>
+          </view>
         </view>
       </view>
-    </view>
+    </swiper-item>
+  </swiper>
+  <view class="calendar-body">
     <view class="selected-info" wx:if="{{selectedDate}}">
       <view class="selected-date">已选择：{{selectedDate}}</view>
       <view class="selected-festivals" wx:if="{{selectedFestivals && selectedFestivals.length}}">
         <view class="festival {{festival.type}} {{festival.region}}" 
               wx:for="{{selectedFestivals}}" 
               wx:for-item="festival" 
-              wx:key="name"
+              wx:key="*this"
               data-name="{{festival.name}}">
         </view>
       </view>
@@ -79,4 +71,4 @@
       </view>
     </view>
   </view>
-</view> 
+</view>

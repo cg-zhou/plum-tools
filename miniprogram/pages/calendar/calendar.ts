@@ -10,24 +10,25 @@ interface DayItem {
   festivals: Holiday[];
 }
 
+interface CalendarPanel {
+  key: string;
+  year: number;
+  month: number;
+  days: DayItem[];
+}
+
 Component({
   data: {
-    isSwiping: false,
-    animationData: {},
-    isAnimating: false,
-    touchStartX: 0,
-    touchEndX: 0,
     year: new Date().getFullYear(),
     month: new Date().getMonth() + 1,
-    days: [] as DayItem[],
+    calendarPanels: [] as CalendarPanel[],
+    swiperCurrent: 1,
     selectedDate: '',
     selectedFestivals: [] as Holiday[],
     weekdays: ['日', '一', '二', '三', '四', '五', '六'],
     years: [] as number[],
     months: Array.from({ length: 12 }, (_, i) => i + 1),
     yearIndex: 0,
-    currentTranslateX: 0,
-    swipeProgress: 0,
     showCN: true,
     showJP: true,
     isSettingPanelVisible: false
@@ -69,8 +70,10 @@ Component({
 
       const updates: Record<string, number | boolean> = {}
       if (year && month) {
-        updates.year = parseInt(year)
+        const sharedYear = parseInt(year)
+        updates.year = sharedYear
         updates.month = parseInt(month)
+        updates.yearIndex = this.data.years.indexOf(sharedYear)
       }
 
       let settings: CalendarSettings | undefined
@@ -93,83 +96,51 @@ Component({
   },
 
   methods: {
-    onTouchStart(e: any) {
-      this.setData({
-        touchStartX: e.touches[0].clientX,
-        isSwiping: false,
-        currentTranslateX: 0
-      });
-    },
-
-    onTouchMove(e: any) {
-      if (this.data.isAnimating) return;
-      
-      const deltaX = e.touches[0].clientX - this.data.touchStartX;
-      const windowInfo = wx.getWindowInfo();
-      const screenWidth = windowInfo.windowWidth;
-      
-      // 限制最大滑动距离为屏幕宽度的 30%
-      const maxDelta = screenWidth * 0.3;
-      const translateX = Math.min(Math.max(deltaX, -maxDelta), maxDelta);
-      
-      const animation = wx.createAnimation({
-        duration: 0,
-        timingFunction: 'linear'
-      });
-      
-      animation.translateX(translateX).step();
-      
-      this.setData({
-        touchEndX: e.touches[0].clientX,
-        isSwiping: true,
-        animationData: animation.export(),
-        currentTranslateX: translateX
-      });
-    },
-
-    onTouchEnd() {
-      const { touchStartX, touchEndX, isSwiping, currentTranslateX } = this.data;
-      const windowInfo = wx.getWindowInfo();
-      const screenWidth = windowInfo.windowWidth;
-
-      if (Math.abs(currentTranslateX) > screenWidth * 0.15) {
-        // 达到切换阈值，执行切换动画
-        const direction = currentTranslateX > 0 ? 'right' : 'left';
-        this.slideToMonth(direction);
-      } else {
-        // 未达阈值，回弹动画
-        const animation = wx.createAnimation({
-          duration: 300,
-          timingFunction: 'ease-out'
-        });
-        animation.translateX(0).step();
-        this.setData({
-          animationData: animation.export(),
-          isAnimating: true
-        });
-        
-        setTimeout(() => {
-          this.setData({ isAnimating: false });
-        }, 300);
-      }
-    },
-
     initCalendar() {
       const now = new Date()
       this.setData({
         year: now.getFullYear(),
         month: now.getMonth() + 1
-      })
-      this.calculateDays()
+      }, () => this.calculateDays())
     },
 
     calculateDays() {
-      const { year, month, selectedDate, showCN, showJP } = this.data;
+      const { year, month, selectedDate, showCN, showJP, swiperCurrent } = this.data;
       const settings: CalendarSettings = { showCN, showJP };
+      const prevMonth = this.getShiftedMonth(year, month, -1);
+      const nextMonth = this.getShiftedMonth(year, month, 1);
       const days = CalendarService.calculateDays(year, month, settings, selectedDate);
       const selectedDay = days.find(day => day.date === selectedDate);
       const selectedFestivals = selectedDay?.festivals || [];
-      this.setData({ days, selectedFestivals });
+      const calendarPanels: CalendarPanel[] = [
+        { key: '0', year, month, days: [] },
+        { key: '1', year, month, days: [] },
+        { key: '2', year, month, days: [] }
+      ];
+
+      calendarPanels[swiperCurrent] = { key: String(swiperCurrent), year, month, days };
+      const prevIndex = (swiperCurrent + 2) % 3;
+      const nextIndex = (swiperCurrent + 1) % 3;
+      calendarPanels[prevIndex] = {
+        key: String(prevIndex),
+        ...prevMonth,
+        days: CalendarService.calculateDays(prevMonth.year, prevMonth.month, settings, selectedDate)
+      };
+      calendarPanels[nextIndex] = {
+        key: String(nextIndex),
+        ...nextMonth,
+        days: CalendarService.calculateDays(nextMonth.year, nextMonth.month, settings, selectedDate)
+      };
+
+      this.setData({ calendarPanels, selectedFestivals });
+    },
+
+    getShiftedMonth(year: number, month: number, offset: number) {
+      const date = new Date(year, month - 1 + offset, 1);
+      return {
+        year: date.getFullYear(),
+        month: date.getMonth() + 1
+      };
     },
 
     onYearChange(e: any) {
@@ -205,74 +176,35 @@ Component({
       }
 
       if (animate) {
-        this.slideToMonth(offset > 0 ? 'left' : 'right');
+        const swiperCurrent = (this.data.swiperCurrent + (offset > 0 ? 1 : 2)) % 3;
+        this.setData({
+          year: newYear,
+          month: newMonth,
+          yearIndex: this.data.years.indexOf(newYear),
+          swiperCurrent
+        }, () => this.calculateDays());
       } else {
         this.setData({
           year: newYear,
           month: newMonth,
-          animationData: {}
-        }, () => {
-          this.calculateDays();
-          const resetAnim = wx.createAnimation({ duration: 0 });
-          resetAnim.translateX(0).step();
-          this.setData({
-            animationData: resetAnim.export()
-          });
-        });
+          yearIndex: this.data.years.indexOf(newYear)
+        }, () => this.calculateDays());
       }
-    },
-
-    startAnimation(direction: 'left' | 'right', callback: () => void) {
-      this.setData({ isAnimating: true });
-
-      const animation = wx.createAnimation({
-        duration: 500,
-        timingFunction: 'ease-out'
-      });
-
-      if (direction === 'left') {
-        animation.translateX('-100%').step();
-      } else {
-        animation.translateX('100%').step();
-      }
-
-      this.setData({
-        animationData: animation.export()
-      });
-
-      setTimeout(() => {
-        animation.translateX(0).step();
-        this.setData({
-          animationData: animation.export()
-        });
-
-        setTimeout(callback, 500);
-      }, 50);
     },
 
     prevMonth() {
-      this.changeMonth(-1, false);
+      this.changeMonth(-1, true);
     },
 
     nextMonth() {
-      this.changeMonth(1, false);
+      this.changeMonth(1, true);
     },
 
     selectDate(e: any) {
       const { date } = e.currentTarget.dataset;
-      const days = this.data.days.map(day => ({
-        ...day,
-        selected: day.date === date
-      }));
-
-      const selectedDay = this.data.days.find(d => d.date === date);
-      const selectedFestivals = selectedDay?.festivals || [];
-
       this.setData({
-        days,
-        selectedDate: date,
-        selectedFestivals
-      });
+        selectedDate: date
+      }, () => this.calculateDays());
     },
 
     goToday() {
@@ -284,6 +216,7 @@ Component({
       this.setData({
         year,
         month,
+        yearIndex: this.data.years.indexOf(year),
         selectedDate: dateStr
       }, () => {
         this.calculateDays();
@@ -299,34 +232,19 @@ Component({
       return CalendarService.getShareInfo(this.data.year, this.data.month, settings);
     },
 
-    slideToMonth(direction: 'left' | 'right') {
-      this.setData({ isAnimating: true });
-      
-      const animation = wx.createAnimation({
-        duration: 300,
-        timingFunction: 'ease-out'
-      });
-      
-      const windowInfo = wx.getWindowInfo();
-      const screenWidth = windowInfo.windowWidth;
-      const targetX = Number(direction === 'left' ? -screenWidth : screenWidth);
-      
-      animation.translateX(targetX).step();
-      
-      this.setData({
-        animationData: animation.export()
-      });
+    onSwiperChange(e: any) {
+      const nextIndex = e.detail.current;
+      const currentIndex = this.data.swiperCurrent;
+      if (nextIndex === currentIndex) return;
 
-      setTimeout(() => {
-        this.changeMonth(direction === 'left' ? 1 : -1, false);
-        // 重置位置并刷新数据
-        const resetAnimation = wx.createAnimation({ duration: 0 });
-        resetAnimation.translateX(0).step();
-        this.setData({
-          animationData: resetAnimation.export(),
-          isAnimating: false
-        });
-      }, 300);
+      const offset = nextIndex === (currentIndex + 1) % 3 ? 1 : -1;
+      const target = this.getShiftedMonth(this.data.year, this.data.month, offset);
+      this.setData({
+        year: target.year,
+        month: target.month,
+        yearIndex: this.data.years.indexOf(target.year),
+        swiperCurrent: nextIndex
+      }, () => this.calculateDays());
     },
 
     toggleSettings() {
