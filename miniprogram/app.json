@@ -1,12 +1,12 @@
 {
   "pages": [
-    "pages/index/index",
-    "pages/calendar/calendar"
+    "pages/calendar/calendar",
+    "pages/index/index"
   ],
   "window": {
     "backgroundTextStyle": "light",
     "navigationBarBackgroundColor": "#fff",
-    "navigationBarTitleText": "日历",
+    "navigationBarTitleText": "中日节假日日历",
     "navigationBarTextStyle": "black"
   },
   "style": "v2",

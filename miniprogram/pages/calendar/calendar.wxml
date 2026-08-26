@@ -31,7 +31,7 @@
             <view class="day-number">{{dayItem.day}}</view>
             <view class="festival-marks" wx:if="{{dayItem.festivals && dayItem.festivals.length}}">
               <view class="festival-mark {{festival.type}} {{festival.region}}"
-                    wx:for="{{dayItem.festivals}}" wx:for-item="festival" wx:key="*this"></view>
+                    wx:for="{{dayItem.festivals}}" wx:for-item="festival" wx:key="region"></view>
             </view>
           </view>
         </view>
@@ -45,10 +45,29 @@
         <view class="festival {{festival.type}} {{festival.region}}" 
               wx:for="{{selectedFestivals}}" 
               wx:for-item="festival" 
-              wx:key="*this"
+              wx:key="region"
               data-name="{{festival.name}}">
         </view>
       </view>
+      <view class="empty-state selected-empty" wx:else>这一天没有已启用地区的节假日或补班安排</view>
+    </view>
+  </view>
+
+  <view class="overview">
+    <view class="upcoming-card">
+      <view class="section-title-row">
+        <view class="section-title">近期节假日</view>
+      </view>
+      <view class="upcoming-list" wx:if="{{upcomingHolidays.length}}">
+        <view class="upcoming-item" wx:for="{{upcomingHolidays}}" wx:key="key"
+              data-date="{{item.date}}" bindtap="selectUpcomingHoliday">
+          <view class="upcoming-date">{{item.date}}</view>
+          <view class="upcoming-name"><text class="mini-region {{item.region}}">{{item.region}}</text>{{item.name}}</view>
+          <view class="upcoming-days" wx:if="{{item.daysUntil === 0}}">今天</view>
+          <view class="upcoming-days" wx:else>{{item.daysUntil}}天</view>
+        </view>
+      </view>
+      <view class="empty-state" wx:else>暂无更多节假日</view>
     </view>
   </view>
 

@@ -9,6 +9,99 @@
   user-select: none;
 }
 
+.overview {
+  width: 100%;
+  padding: 20rpx 0 0;
+  background: #f5f7fa;
+  box-sizing: border-box;
+}
+
+.upcoming-card {
+  width: 100%;
+  padding: 24rpx;
+  background: #fff;
+  box-sizing: border-box;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.04);
+}
+
+.section-title-row,
+.upcoming-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.mini-region {
+  flex: none;
+  color: #fff;
+  font-weight: 600;
+  text-align: center;
+}
+
+.mini-region.CN {
+  background: #f5222d;
+}
+
+.mini-region.JP {
+  background: #1890ff;
+}
+
+.upcoming-item:active {
+  opacity: 0.7;
+}
+
+.mini-region {
+  display: inline-block;
+  margin-right: 10rpx;
+  padding: 3rpx 8rpx;
+  border-radius: 6rpx;
+  font-size: 18rpx;
+  vertical-align: middle;
+}
+
+.section-title {
+  color: #333;
+  font-size: 30rpx;
+  font-weight: 600;
+}
+
+.upcoming-list {
+  margin-top: 14rpx;
+}
+
+.upcoming-item {
+  min-height: 68rpx;
+  border-top: 1rpx solid #f0f0f0;
+  font-size: 24rpx;
+}
+
+.upcoming-date {
+  width: 170rpx;
+  color: #666;
+}
+
+.upcoming-name {
+  flex: 1;
+  min-width: 0;
+  color: #333;
+}
+
+.upcoming-days {
+  color: #8c8c8c;
+}
+
+.empty-state {
+  padding: 24rpx 0;
+  color: #999;
+  font-size: 24rpx;
+  text-align: center;
+}
+
+.selected-empty {
+  padding-bottom: 0;
+  text-align: left;
+}
+
 .calendar-header {
   background: #fff;
   width: 100%;

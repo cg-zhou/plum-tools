@@ -16,4 +16,10 @@ export interface DayItem {
 export interface CalendarSettings {
   showCN: boolean;
   showJP: boolean;
-} 
+}
+
+export interface UpcomingHoliday extends Holiday {
+  key: string;
+  date: string;
+  daysUntil: number;
+}

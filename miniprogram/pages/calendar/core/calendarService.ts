@@ -1,4 +1,4 @@
-import { Holiday, DayItem, CalendarSettings } from './calendarModel';
+import { Holiday, DayItem, CalendarSettings, UpcomingHoliday } from './calendarModel';
 import { holidayData } from '../../../utils/holidays';
 
 export class CalendarService {
@@ -96,6 +96,45 @@ export class CalendarService {
       showCN: typeof storedCN === 'boolean' ? storedCN : this.DEFAULT_SETTINGS.showCN,
       showJP: typeof storedJP === 'boolean' ? storedJP : this.DEFAULT_SETTINGS.showJP
     };
+  }
+
+  static getFestivals(date: string, settings: CalendarSettings): Holiday[] {
+    return this.filterFestivals(holidayData[date] || [], settings);
+  }
+
+  static getUpcomingHolidays(fromDate: string, settings: CalendarSettings, limit = 5): UpcomingHoliday[] {
+    const from = this.parseDate(fromDate);
+    const upcoming: UpcomingHoliday[] = [];
+
+    for (const date of Object.keys(holidayData).sort()) {
+      if (date < fromDate) continue;
+
+      const holidays = this.getFestivals(date, settings).filter(item => item.type === 'holiday');
+      for (const holiday of holidays) {
+        const current = this.parseDate(date);
+        const previous = new Date(current);
+        previous.setDate(previous.getDate() - 1);
+        const isContinuation = this.getFestivals(this.formatDate(previous), settings).some(item =>
+          item.type === 'holiday' && item.region === holiday.region && item.name === holiday.name
+        );
+        if (isContinuation) continue;
+
+        upcoming.push({
+          ...holiday,
+          key: `${date}-${holiday.region}-${holiday.name}`,
+          date,
+          daysUntil: Math.round((current.getTime() - from.getTime()) / 86400000)
+        });
+        if (upcoming.length >= limit) return upcoming;
+      }
+    }
+
+    return upcoming;
+  }
+
+  private static parseDate(date: string): Date {
+    const [year, month, day] = date.split('-').map(Number);
+    return new Date(year, month - 1, day);
   }
 
   /**

@@ -1,5 +1,8 @@
 import { CalendarService } from './core/calendarService';
-import { Holiday, CalendarSettings } from './core/calendarModel';
+import { Holiday, CalendarSettings, UpcomingHoliday } from './core/calendarModel';
+
+const MIN_DATA_YEAR = 2002;
+const MAX_DATA_YEAR = 2026;
 
 interface DayItem {
   date: string;      // YYYY-MM-DD
@@ -25,6 +28,7 @@ Component({
     swiperCurrent: 1,
     selectedDate: '',
     selectedFestivals: [] as Holiday[],
+    upcomingHolidays: [] as UpcomingHoliday[],
     weekdays: ['日', '一', '二', '三', '四', '五', '六'],
     years: [] as number[],
     months: Array.from({ length: 12 }, (_, i) => i + 1),
@@ -36,9 +40,9 @@ Component({
 
   lifetimes: {
     attached() {
-      // 生成年份数组（1900-2050）
+      // 只开放中日节假日数据都有完整覆盖的年份
       const years: number[] = []
-      for (let i = 1900; i <= 2050; i++) {
+      for (let i = MIN_DATA_YEAR; i <= MAX_DATA_YEAR; i++) {
         years.push(i)
       }
 
@@ -70,7 +74,7 @@ Component({
 
       const updates: Record<string, number | boolean> = {}
       if (year && month) {
-        const sharedYear = parseInt(year)
+        const sharedYear = Math.min(Math.max(parseInt(year), MIN_DATA_YEAR), MAX_DATA_YEAR)
         updates.year = sharedYear
         updates.month = parseInt(month)
         updates.yearIndex = this.data.years.indexOf(sharedYear)
@@ -100,7 +104,8 @@ Component({
       const now = new Date()
       this.setData({
         year: now.getFullYear(),
-        month: now.getMonth() + 1
+        month: now.getMonth() + 1,
+        selectedDate: CalendarService.formatDate(now)
       }, () => this.calculateDays())
     },
 
@@ -112,6 +117,9 @@ Component({
       const days = CalendarService.calculateDays(year, month, settings, selectedDate);
       const selectedDay = days.find(day => day.date === selectedDate);
       const selectedFestivals = selectedDay?.festivals || [];
+      const now = new Date();
+      const todayDate = CalendarService.formatDate(now);
+      const upcomingHolidays = CalendarService.getUpcomingHolidays(todayDate, settings);
       const calendarPanels: CalendarPanel[] = [
         { key: '0', year, month, days: [] },
         { key: '1', year, month, days: [] },
@@ -132,7 +140,11 @@ Component({
         days: CalendarService.calculateDays(nextMonth.year, nextMonth.month, settings, selectedDate)
       };
 
-      this.setData({ calendarPanels, selectedFestivals });
+      this.setData({
+        calendarPanels,
+        selectedFestivals,
+        upcomingHolidays
+      });
     },
 
     getShiftedMonth(year: number, month: number, offset: number) {
@@ -175,6 +187,11 @@ Component({
         newMonth = 1;
       }
 
+      if (newYear < MIN_DATA_YEAR || newYear > MAX_DATA_YEAR) {
+        wx.showToast({ title: `仅支持${MIN_DATA_YEAR}-${MAX_DATA_YEAR}年`, icon: 'none' });
+        return;
+      }
+
       if (animate) {
         const swiperCurrent = (this.data.swiperCurrent + (offset > 0 ? 1 : 2)) % 3;
         this.setData({
@@ -203,6 +220,17 @@ Component({
     selectDate(e: any) {
       const { date } = e.currentTarget.dataset;
       this.setData({
+        selectedDate: date
+      }, () => this.calculateDays());
+    },
+
+    selectUpcomingHoliday(e: any) {
+      const { date } = e.currentTarget.dataset;
+      const [year, month] = date.split('-').map(Number);
+      this.setData({
+        year,
+        month,
+        yearIndex: this.data.years.indexOf(year),
         selectedDate: date
       }, () => this.calculateDays());
     },
@@ -239,6 +267,11 @@ Component({
 
       const offset = nextIndex === (currentIndex + 1) % 3 ? 1 : -1;
       const target = this.getShiftedMonth(this.data.year, this.data.month, offset);
+      if (target.year < MIN_DATA_YEAR || target.year > MAX_DATA_YEAR) {
+        wx.showToast({ title: `仅支持${MIN_DATA_YEAR}-${MAX_DATA_YEAR}年`, icon: 'none' });
+        this.setData({ swiperCurrent: currentIndex });
+        return;
+      }
       this.setData({
         year: target.year,
         month: target.month,
