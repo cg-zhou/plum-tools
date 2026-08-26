@@ -4,7 +4,7 @@ import { holidayData } from '../../../utils/holidays';
 export class CalendarService {
   private static DEFAULT_SETTINGS: CalendarSettings = {
     showCN: true,
-    showJP: false
+    showJP: true
   };
 
   /**
@@ -89,9 +89,12 @@ export class CalendarService {
    * 获取默认设置
    */
   static getDefaultSettings(): CalendarSettings {
+    const storedCN = wx.getStorageSync('holidayFilterCN');
+    const storedJP = wx.getStorageSync('holidayFilterJP');
+
     return {
-      showCN: wx.getStorageSync('holidayFilterCN') || this.DEFAULT_SETTINGS.showCN,
-      showJP: wx.getStorageSync('holidayFilterJP') || this.DEFAULT_SETTINGS.showJP
+      showCN: typeof storedCN === 'boolean' ? storedCN : this.DEFAULT_SETTINGS.showCN,
+      showJP: typeof storedJP === 'boolean' ? storedJP : this.DEFAULT_SETTINGS.showJP
     };
   }
 

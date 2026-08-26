@@ -4,7 +4,7 @@ import { Holiday, CalendarSettings } from './core/calendarModel';
 // 定义默认值常量
 const DEFAULT_SETTINGS = {
   SHOW_CN: true,
-  SHOW_JP: false
+  SHOW_JP: true
 };
 
 interface DayItem {
@@ -35,7 +35,7 @@ Component({
     currentTranslateX: 0,
     swipeProgress: 0,
     showCN: true,
-    showJP: false,
+    showJP: true,
     isSettingPanelVisible: false
   },
 
@@ -383,4 +383,4 @@ Component({
       }
     }
   }
-}) 
+})
