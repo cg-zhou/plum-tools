@@ -1,12 +1,6 @@
 import { CalendarService } from './core/calendarService';
 import { Holiday, CalendarSettings } from './core/calendarModel';
 
-// 定义默认值常量
-const DEFAULT_SETTINGS = {
-  SHOW_CN: true,
-  SHOW_JP: true
-};
-
 interface DayItem {
   date: string;      // YYYY-MM-DD
   day: number;       // 日期数字
@@ -57,10 +51,10 @@ Component({
         yearIndex,
         showCN: settings.showCN,
         showJP: settings.showJP
+      }, () => {
+        // 初始化当前日期
+        this.initCalendar()
       })
-
-      // 初始化当前日期
-      this.initCalendar()
     }
   },
 
@@ -73,23 +67,27 @@ Component({
       const options = currentPage?.options || {}
       const { year, month, cn, jp } = options
 
-      // 如果有分享参数，则跳转到对应年月
+      const updates: Record<string, number | boolean> = {}
       if (year && month) {
-        this.setData({
-          year: parseInt(year),
-          month: parseInt(month)
-        }, () => {
-          this.calculateDays()
-        })
+        updates.year = parseInt(year)
+        updates.month = parseInt(month)
       }
 
+      let settings: CalendarSettings | undefined
       if (cn !== undefined || jp !== undefined) {
-        const settings: CalendarSettings = {
-          showCN: cn !== '0',
-          showJP: jp !== '0'
-        };
-        this.setData(settings);
-        CalendarService.saveSettings(settings);
+        settings = {
+          showCN: cn === undefined ? this.data.showCN : cn !== '0',
+          showJP: jp === undefined ? this.data.showJP : jp !== '0'
+        }
+        updates.showCN = settings.showCN
+        updates.showJP = settings.showJP
+      }
+
+      if (Object.keys(updates).length > 0) {
+        this.setData(updates, () => this.calculateDays())
+      }
+      if (settings) {
+        CalendarService.saveSettings(settings)
       }
     }
   },
@@ -169,7 +167,9 @@ Component({
       const { year, month, selectedDate, showCN, showJP } = this.data;
       const settings: CalendarSettings = { showCN, showJP };
       const days = CalendarService.calculateDays(year, month, settings, selectedDate);
-      this.setData({ days });
+      const selectedDay = days.find(day => day.date === selectedDate);
+      const selectedFestivals = selectedDay?.festivals || [];
+      this.setData({ days, selectedFestivals });
     },
 
     onYearChange(e: any) {
@@ -265,13 +265,8 @@ Component({
         selected: day.date === date
       }));
 
-      const settings: CalendarSettings = {
-        showCN: this.data.showCN,
-        showJP: this.data.showJP
-      };
-
       const selectedDay = this.data.days.find(d => d.date === date);
-      const selectedFestivals = selectedDay ? CalendarService.filterFestivals(selectedDay.festivals, settings) : [];
+      const selectedFestivals = selectedDay?.festivals || [];
 
       this.setData({
         days,
@@ -350,7 +345,6 @@ Component({
       this.setData({ showCN }, () => {
         CalendarService.saveSettings(settings);
         this.calculateDays();
-        this.updateSelectedFestivals();
       });
     },
 
@@ -364,23 +358,7 @@ Component({
       this.setData({ showJP }, () => {
         CalendarService.saveSettings(settings);
         this.calculateDays();
-        this.updateSelectedFestivals();
       });
-    },
-
-    // 新增方法：更新当前选中日期的节假日列表
-    updateSelectedFestivals() {
-      if (this.data.selectedDate) {
-        const settings: CalendarSettings = {
-          showCN: this.data.showCN,
-          showJP: this.data.showJP
-        };
-        
-        const selectedDay = this.data.days.find(d => d.date === this.data.selectedDate);
-        const selectedFestivals = selectedDay ? CalendarService.filterFestivals(selectedDay.festivals, settings) : [];
-        
-        this.setData({ selectedFestivals });
-      }
     }
   }
 })
