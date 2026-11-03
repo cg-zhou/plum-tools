@@ -35,8 +35,9 @@ jobs:
       - name: Upload development version
         env:
           WECHAT_PRIVATE_KEY_PATH: ${{ runner.temp }}/wechat-upload.key
-          UPLOAD_VERSION: 1.0.${{ github.run_number }}
-        run: npx --yes miniprogram-ci@2.1.48 upload --pp ./ --pkp "$WECHAT_PRIVATE_KEY_PATH" --appid wx85cc62eaa3206601 --uv "$UPLOAD_VERSION" --use-project-config true
+        run: |
+          UPLOAD_VERSION="$(node -p "require('./package.json').version")"
+          npx --yes miniprogram-ci@2.1.48 upload --pp ./ --pkp "$WECHAT_PRIVATE_KEY_PATH" --appid wx85cc62eaa3206601 --uv "$UPLOAD_VERSION" --ud "自动上传开发版，提交 ${GITHUB_SHA:0:7}" --use-project-config true
 
       - name: Remove temporary upload key
         if: always()

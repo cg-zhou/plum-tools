@@ -20,6 +20,8 @@
 
 推送到 `main` 后，GitHub Actions 使用微信官方 `miniprogram-ci` 上传开发版，也可以在 Actions 页面手动运行 **Upload WeChat Mini Program (development)**。无需在本机安装微信开发者工具。
 
+上传版本号取自 `package.json` 的 `version`；上传描述包含本次提交的短哈希。需要更新版本号时修改该字段。
+
 配置步骤：
 
 1. 在微信公众平台的「开发管理 → 开发设置 → 小程序代码上传」生成并下载代码上传密钥。
