@@ -2,8 +2,8 @@ import { CalendarService } from './core/calendarService';
 import { Holiday, CalendarSettings, UpcomingHoliday } from './core/calendarModel';
 import { buildTime } from '../../utils/buildInfo';
 
-const MIN_DATA_YEAR = 2002;
-const MAX_DATA_YEAR = 2026;
+const MIN_DATA_YEAR = 1900;
+const MAX_DATA_YEAR = 2050;
 
 interface DayItem {
   date: string;      // YYYY-MM-DD
@@ -43,7 +43,7 @@ Component({
 
   lifetimes: {
     attached() {
-      // 只开放中日节假日数据都有完整覆盖的年份
+      // 日历可浏览固定范围，节假日数据按实际覆盖情况显示。
       const years: number[] = []
       for (let i = MIN_DATA_YEAR; i <= MAX_DATA_YEAR; i++) {
         years.push(i)
@@ -64,9 +64,7 @@ Component({
         this.initCalendar()
       })
       CalendarService.getYearRange().then(range => {
-        const updatedYears = Array.from({ length: range.max - range.min + 1 }, (_, index) => range.min + index);
-        const year = Math.min(Math.max(this.data.year, range.min), range.max);
-        this.setData({ years: updatedYears, year, yearIndex: updatedYears.indexOf(year), apiStatus: range.online ? 'online' : 'offline' }, () => this.calculateDays());
+        this.setData({ apiStatus: range.online ? 'online' : 'offline' });
       });
     }
   },
@@ -85,7 +83,7 @@ Component({
         const sharedYear = Number(year)
         const sharedMonth = Number(month)
         if (Number.isInteger(sharedYear) && Number.isInteger(sharedMonth) && sharedMonth >= 1 && sharedMonth <= 12) {
-          updates.year = Math.min(Math.max(sharedYear, 1900), 2100)
+          updates.year = Math.min(Math.max(sharedYear, MIN_DATA_YEAR), MAX_DATA_YEAR)
           updates.month = sharedMonth
           updates.yearIndex = this.data.years.indexOf(updates.year as number)
         }
