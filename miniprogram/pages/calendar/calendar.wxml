@@ -71,7 +71,7 @@
     </view>
   </view>
 
-  <view class="data-sources">更新于 {{buildTime}} · {{apiStatus}}</view>
+  <view class="data-sources"><text class="api-dot {{apiStatus}}"></text> API | 更新于 {{buildTime}}</view>
 
   <view class="settings-panel" wx:if="{{isSettingPanelVisible}}">
     <view class="panel-mask" bindtap="toggleSettings"></view>

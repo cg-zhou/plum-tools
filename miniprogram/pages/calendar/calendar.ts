@@ -31,7 +31,7 @@ Component({
     selectedFestivals: [] as Holiday[],
     upcomingHolidays: [] as UpcomingHoliday[],
     buildTime,
-    apiStatus: '接口检测中',
+    apiStatus: 'checking',
     weekdays: ['日', '一', '二', '三', '四', '五', '六'],
     years: [] as number[],
     months: Array.from({ length: 12 }, (_, i) => i + 1),
@@ -66,7 +66,7 @@ Component({
       CalendarService.getYearRange().then(range => {
         const updatedYears = Array.from({ length: range.max - range.min + 1 }, (_, index) => range.min + index);
         const year = Math.min(Math.max(this.data.year, range.min), range.max);
-        this.setData({ years: updatedYears, year, yearIndex: updatedYears.indexOf(year), apiStatus: range.online ? '索引接口可用' : '索引接口不可用' }, () => this.calculateDays());
+        this.setData({ years: updatedYears, year, yearIndex: updatedYears.indexOf(year), apiStatus: range.online ? 'online' : 'offline' }, () => this.calculateDays());
       });
     }
   },

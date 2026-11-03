@@ -581,6 +581,18 @@ switch {
   line-height: 1.6;
 }
 
+.api-dot {
+  display: inline-block;
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 50%;
+  background: #aaa;
+  vertical-align: middle;
+}
+
+.api-dot.online { background: #35b86b; }
+.api-dot.offline { background: #e05b5b; }
+
 .region-tag.CN .region-label {
   background: #fff0f0;
   color: #f5222d;
