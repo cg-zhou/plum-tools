@@ -37,6 +37,8 @@ jobs:
           WECHAT_PRIVATE_KEY_PATH: ${{ runner.temp }}/wechat-upload.key
         run: |
           UPLOAD_VERSION="$(node -p "require('./package.json').version")"
+          BUILD_TIME="$(TZ=Asia/Shanghai date '+%Y-%m-%d %H:%M')"
+          printf "export const buildTime = '%s';\n" "$BUILD_TIME" > miniprogram/utils/buildInfo.ts
           npx --yes miniprogram-ci@2.1.48 upload --pp ./ --pkp "$WECHAT_PRIVATE_KEY_PATH" --appid wx85cc62eaa3206601 --uv "$UPLOAD_VERSION" --ud "自动上传开发版，提交 ${GITHUB_SHA:0:7}" --use-project-config true
 
       - name: Remove temporary upload key

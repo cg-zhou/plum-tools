@@ -71,9 +71,7 @@
     </view>
   </view>
 
-  <view class="data-sources" wx:if="{{dataSources.length}}">
-    <view wx:for="{{dataSources}}" wx:key="*this">{{item}}</view>
-  </view>
+  <view class="data-sources">更新于 {{buildTime}} · {{apiStatus}}</view>
 
   <view class="settings-panel" wx:if="{{isSettingPanelVisible}}">
     <view class="panel-mask" bindtap="toggleSettings"></view>

@@ -6,16 +6,6 @@ export class CalendarService {
   private static readonly cacheAge = 24 * 60 * 60 * 1000;
   private static readonly pending: Record<string, Promise<boolean> | undefined> = {};
   private static readonly attempted: Record<string, number> = {};
-  private static readonly sources: Record<string, { source: string; time?: number }> = {};
-
-  static getDataSource(year: number, region: 'CN' | 'JP'): string {
-    const info = this.sources[`${region}-${year}`];
-    if (!info) return `${region}：本地内置（更新时间未知）`;
-    if (!info.time) return `${region}：${info.source}（更新时间未知）`;
-    const date = new Date(info.time);
-    const time = `${this.formatDate(date)} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
-    return `${region}：${info.source} · 更新于 ${time}`;
-  }
 
   private static request(url: string): Promise<any> {
     return new Promise((resolve, reject) => wx.request({
@@ -25,7 +15,7 @@ export class CalendarService {
     }));
   }
 
-  static async getYearRange(): Promise<{ min: number; max: number }> {
+  static async getYearRange(): Promise<{ min: number; max: number; online: boolean }> {
     const fallback = { min: 2002, max: 2026 };
     const key = 'holiday-index-v1';
     let data: any;
@@ -38,13 +28,13 @@ export class CalendarService {
       const range = { min: Math.max(cn.startYear, jp.startYear, 1900), max: Math.min(cn.endYear, jp.endYear, 2100) };
       if (range.min > range.max) throw new Error('Invalid range');
       try { wx.setStorageSync(key, range); } catch (_) { /* Storage is optional. */ }
-      return range;
+      return { ...range, online: true };
     } catch (_) {
       try {
         const cached = wx.getStorageSync(key);
-        if (cached && Number.isInteger(cached.min) && Number.isInteger(cached.max) && cached.min >= 1900 && cached.max <= 2100 && cached.min <= cached.max) return cached;
+        if (cached && Number.isInteger(cached.min) && Number.isInteger(cached.max) && cached.min >= 1900 && cached.max <= 2100 && cached.min <= cached.max) return { min: cached.min, max: cached.max, online: false };
       } catch (_) { /* Use bundled range. */ }
-      return fallback;
+      return { ...fallback, online: false };
     }
   }
 
@@ -60,13 +50,11 @@ export class CalendarService {
     let restored = false;
     if (cached && this.applyYear(cached.data, year, region)) {
       restored = true;
-      this.sources[`${region}-${year}`] = { source: '本地缓存', time: typeof cached.time === 'number' ? cached.time : undefined };
     }
     if (restored && typeof cached.time === 'number' && Date.now() - cached.time < this.cacheAge) return Promise.resolve(true);
     this.pending[key] = this.request(`${this.baseUrl}/${region}/${year}.json`).then(data => {
       if (!this.applyYear(data, year, region)) throw new Error('Invalid holiday data');
       const time = Date.now();
-      this.sources[`${region}-${year}`] = { source: '接口', time };
       try { wx.setStorageSync(key, { time, data }); } catch (_) { /* Storage is optional. */ }
       return true;
     }).catch(() => {

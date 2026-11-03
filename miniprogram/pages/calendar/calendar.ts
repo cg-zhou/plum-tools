@@ -1,5 +1,6 @@
 import { CalendarService } from './core/calendarService';
 import { Holiday, CalendarSettings, UpcomingHoliday } from './core/calendarModel';
+import { buildTime } from '../../utils/buildInfo';
 
 const MIN_DATA_YEAR = 2002;
 const MAX_DATA_YEAR = 2026;
@@ -29,7 +30,8 @@ Component({
     selectedDate: '',
     selectedFestivals: [] as Holiday[],
     upcomingHolidays: [] as UpcomingHoliday[],
-    dataSources: [] as string[],
+    buildTime,
+    apiStatus: '接口检测中',
     weekdays: ['日', '一', '二', '三', '四', '五', '六'],
     years: [] as number[],
     months: Array.from({ length: 12 }, (_, i) => i + 1),
@@ -64,7 +66,7 @@ Component({
       CalendarService.getYearRange().then(range => {
         const updatedYears = Array.from({ length: range.max - range.min + 1 }, (_, index) => range.min + index);
         const year = Math.min(Math.max(this.data.year, range.min), range.max);
-        this.setData({ years: updatedYears, year, yearIndex: updatedYears.indexOf(year) }, () => this.calculateDays());
+        this.setData({ years: updatedYears, year, yearIndex: updatedYears.indexOf(year), apiStatus: range.online ? '索引接口可用' : '索引接口不可用' }, () => this.calculateDays());
       });
     }
   },
@@ -162,11 +164,7 @@ Component({
       this.setData({
         calendarPanels,
         selectedFestivals,
-        upcomingHolidays,
-        dataSources: [
-          ...(showCN ? [CalendarService.getDataSource(year, 'CN')] : []),
-          ...(showJP ? [CalendarService.getDataSource(year, 'JP')] : [])
-        ]
+        upcomingHolidays
       });
     },
 
