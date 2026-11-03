@@ -577,17 +577,24 @@ switch {
   margin: 24rpx 0;
   color: #999;
   font-size: 22rpx;
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20rpx;
   line-height: 1.6;
 }
 
+.api-status {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
 .api-dot {
-  display: inline-block;
   width: 12rpx;
   height: 12rpx;
   border-radius: 50%;
   background: #aaa;
-  vertical-align: middle;
 }
 
 .api-dot.online { background: #35b86b; }
