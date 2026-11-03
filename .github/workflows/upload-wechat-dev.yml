@@ -1,0 +1,43 @@
+name: Upload WeChat Mini Program (development)
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: wechat-dev-upload
+  cancel-in-progress: false
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Create temporary upload key
+        env:
+          WECHAT_PRIVATE_KEY: ${{ secrets.WECHAT_PRIVATE_KEY }}
+        run: |
+          test -n "$WECHAT_PRIVATE_KEY" || (echo "Missing WECHAT_PRIVATE_KEY secret" && exit 1)
+          umask 077
+          printf '%s' "$WECHAT_PRIVATE_KEY" > "$RUNNER_TEMP/wechat-upload.key"
+
+      - name: Upload development version
+        env:
+          WECHAT_PRIVATE_KEY_PATH: ${{ runner.temp }}/wechat-upload.key
+          UPLOAD_VERSION: 1.0.${{ github.run_number }}
+        run: npx --yes miniprogram-ci@2.1.48 upload --pp ./ --pkp "$WECHAT_PRIVATE_KEY_PATH" --appid wx85cc62eaa3206601 --uv "$UPLOAD_VERSION" --use-project-config true
+
+      - name: Remove temporary upload key
+        if: always()
+        run: rm -f "$RUNNER_TEMP/wechat-upload.key"

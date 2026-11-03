@@ -60,6 +60,11 @@ Component({
         // 初始化当前日期
         this.initCalendar()
       })
+      CalendarService.getYearRange().then(range => {
+        const updatedYears = Array.from({ length: range.max - range.min + 1 }, (_, index) => range.min + index);
+        const year = Math.min(Math.max(this.data.year, range.min), range.max);
+        this.setData({ years: updatedYears, year, yearIndex: updatedYears.indexOf(year) }, () => this.calculateDays());
+      });
     }
   },
 
@@ -74,10 +79,13 @@ Component({
 
       const updates: Record<string, number | boolean> = {}
       if (year && month) {
-        const sharedYear = Math.min(Math.max(parseInt(year), MIN_DATA_YEAR), MAX_DATA_YEAR)
-        updates.year = sharedYear
-        updates.month = parseInt(month)
-        updates.yearIndex = this.data.years.indexOf(sharedYear)
+        const sharedYear = Number(year)
+        const sharedMonth = Number(month)
+        if (Number.isInteger(sharedYear) && Number.isInteger(sharedMonth) && sharedMonth >= 1 && sharedMonth <= 12) {
+          updates.year = Math.min(Math.max(sharedYear, 1900), 2100)
+          updates.month = sharedMonth
+          updates.yearIndex = this.data.years.indexOf(updates.year as number)
+        }
       }
 
       let settings: CalendarSettings | undefined
@@ -102,8 +110,10 @@ Component({
   methods: {
     initCalendar() {
       const now = new Date()
+      const year = Math.min(Math.max(now.getFullYear(), this.data.years[0]), this.data.years[this.data.years.length - 1])
       this.setData({
-        year: now.getFullYear(),
+        year,
+        yearIndex: this.data.years.indexOf(year),
         month: now.getMonth() + 1,
         selectedDate: CalendarService.formatDate(now)
       }, () => this.calculateDays())
@@ -111,6 +121,14 @@ Component({
 
     calculateDays() {
       const { year, month, selectedDate, showCN, showJP, swiperCurrent } = this.data;
+      const currentYear = new Date().getFullYear();
+      const yearsToLoad = Array.from(new Set([year - 1, year, year + 1, currentYear, currentYear + 1]));
+      Promise.all(yearsToLoad.reduce((requests: Promise<boolean>[], targetYear) => {
+        requests.push(CalendarService.loadYear(targetYear, 'CN'), CalendarService.loadYear(targetYear, 'JP'));
+        return requests;
+      }, [])).then(results => {
+        if (results.some(Boolean)) this.calculateDays();
+      });
       const settings: CalendarSettings = { showCN, showJP };
       const prevMonth = this.getShiftedMonth(year, month, -1);
       const nextMonth = this.getShiftedMonth(year, month, 1);
@@ -187,8 +205,10 @@ Component({
         newMonth = 1;
       }
 
-      if (newYear < MIN_DATA_YEAR || newYear > MAX_DATA_YEAR) {
-        wx.showToast({ title: `仅支持${MIN_DATA_YEAR}-${MAX_DATA_YEAR}年`, icon: 'none' });
+      const minYear = this.data.years[0];
+      const maxYear = this.data.years[this.data.years.length - 1];
+      if (newYear < minYear || newYear > maxYear) {
+        wx.showToast({ title: `仅支持${minYear}-${maxYear}年`, icon: 'none' });
         return;
       }
 
@@ -227,6 +247,7 @@ Component({
     selectUpcomingHoliday(e: any) {
       const { date } = e.currentTarget.dataset;
       const [year, month] = date.split('-').map(Number);
+      if (!this.data.years.includes(year)) return;
       this.setData({
         year,
         month,
@@ -237,7 +258,7 @@ Component({
 
     goToday() {
       const now = new Date();
-      const year = now.getFullYear();
+      const year = Math.min(Math.max(now.getFullYear(), this.data.years[0]), this.data.years[this.data.years.length - 1]);
       const month = now.getMonth() + 1;
       const dateStr = CalendarService.formatDate(now);
 
@@ -267,8 +288,10 @@ Component({
 
       const offset = nextIndex === (currentIndex + 1) % 3 ? 1 : -1;
       const target = this.getShiftedMonth(this.data.year, this.data.month, offset);
-      if (target.year < MIN_DATA_YEAR || target.year > MAX_DATA_YEAR) {
-        wx.showToast({ title: `仅支持${MIN_DATA_YEAR}-${MAX_DATA_YEAR}年`, icon: 'none' });
+      const minYear = this.data.years[0];
+      const maxYear = this.data.years[this.data.years.length - 1];
+      if (target.year < minYear || target.year > maxYear) {
+        wx.showToast({ title: `仅支持${minYear}-${maxYear}年`, icon: 'none' });
         this.setData({ swiperCurrent: currentIndex });
         return;
       }
