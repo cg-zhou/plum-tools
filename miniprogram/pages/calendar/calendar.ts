@@ -29,6 +29,7 @@ Component({
     selectedDate: '',
     selectedFestivals: [] as Holiday[],
     upcomingHolidays: [] as UpcomingHoliday[],
+    dataSources: [] as string[],
     weekdays: ['日', '一', '二', '三', '四', '五', '六'],
     years: [] as number[],
     months: Array.from({ length: 12 }, (_, i) => i + 1),
@@ -161,7 +162,11 @@ Component({
       this.setData({
         calendarPanels,
         selectedFestivals,
-        upcomingHolidays
+        upcomingHolidays,
+        dataSources: [
+          ...(showCN ? [CalendarService.getDataSource(year, 'CN')] : []),
+          ...(showJP ? [CalendarService.getDataSource(year, 'JP')] : [])
+        ]
       });
     },
 

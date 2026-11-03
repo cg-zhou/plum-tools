@@ -573,6 +573,14 @@ switch {
   align-items: center;
 }
 
+.data-sources {
+  margin: 24rpx 0;
+  color: #999;
+  font-size: 22rpx;
+  text-align: center;
+  line-height: 1.6;
+}
+
 .region-tag.CN .region-label {
   background: #fff0f0;
   color: #f5222d;

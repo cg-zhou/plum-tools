@@ -6,6 +6,16 @@ export class CalendarService {
   private static readonly cacheAge = 24 * 60 * 60 * 1000;
   private static readonly pending: Record<string, Promise<boolean> | undefined> = {};
   private static readonly attempted: Record<string, number> = {};
+  private static readonly sources: Record<string, { source: string; time?: number }> = {};
+
+  static getDataSource(year: number, region: 'CN' | 'JP'): string {
+    const info = this.sources[`${region}-${year}`];
+    if (!info) return `${region}：本地内置（更新时间未知）`;
+    if (!info.time) return `${region}：${info.source}（更新时间未知）`;
+    const date = new Date(info.time);
+    const time = `${this.formatDate(date)} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+    return `${region}：${info.source} · 更新于 ${time}`;
+  }
 
   private static request(url: string): Promise<any> {
     return new Promise((resolve, reject) => wx.request({
@@ -48,11 +58,16 @@ export class CalendarService {
     let cached: any;
     try { cached = wx.getStorageSync(key); } catch (_) { /* Storage is optional. */ }
     let restored = false;
-    if (cached && this.applyYear(cached.data, year, region)) restored = true;
+    if (cached && this.applyYear(cached.data, year, region)) {
+      restored = true;
+      this.sources[`${region}-${year}`] = { source: '本地缓存', time: typeof cached.time === 'number' ? cached.time : undefined };
+    }
     if (restored && typeof cached.time === 'number' && Date.now() - cached.time < this.cacheAge) return Promise.resolve(true);
     this.pending[key] = this.request(`${this.baseUrl}/${region}/${year}.json`).then(data => {
       if (!this.applyYear(data, year, region)) throw new Error('Invalid holiday data');
-      try { wx.setStorageSync(key, { time: Date.now(), data }); } catch (_) { /* Storage is optional. */ }
+      const time = Date.now();
+      this.sources[`${region}-${year}`] = { source: '接口', time };
+      try { wx.setStorageSync(key, { time, data }); } catch (_) { /* Storage is optional. */ }
       return true;
     }).catch(() => {
       // Retry later in the same session after a temporary failure.
